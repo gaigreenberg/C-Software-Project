@@ -121,6 +121,61 @@
 		 }
 	 }
 
+	 
+	 /* calculating the norm-1 of spmat C */
+ double norm1(struct _spmat *C){
+	 int i,n = C->n;
+	 double max=0;
+	 double* colls = (double*)calloc(n,sizeof(double));
+	 list current;
+
+	 for (i = 0; i < n; ++i) {
+		 current=((list*)(C->private))[i];
+		while(current!=NULL){
+			colls[current->col]+=abs(current->value);
+			current=current->nextCell;
+		}
+	}
+	 for (i = 0; i < n; ++i) {
+		 if(colls[i]>max){
+			 max = colls[i];
+		 }
+	 }
+	 free(colls);
+	 return max;
+ }
+
+ /* calculate multiply by 2 vectors */
+ double multiVec(double *v1 , double *v2){
+	 double sum = 0;
+	 int i=0;
+
+	 if(sizeof(v1)!=sizeof(v2)){
+		 printf("vec's size's dont match");
+		 exit(0);
+	 }
+	 for(;i<sizeof(v1);++i){
+		 sum=v1[i]*v2[i];
+	 }
+	 return sum;
+ }
+
+
+
+
+/* finding eigenValue for the founded eigenVector and normalize it with norm */
+double eigenVal(double *v,struct _spmat *C,double norm){
+	double value,denominator,numerator;
+	double *temp=(double*)calloc(1,sizeof(v));
+	mult_list(C,v,temp);
+	numerator = multiVec(v,temp);
+	denominator= multiVec(v,v);
+	value = numerator/denominator;
+	value = value - norm;
+	free(temp);
+	return value;
+}
+
  }
 
 
