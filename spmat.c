@@ -58,7 +58,6 @@ list CopyList(list old){
 
 }
 
-
 /* make a deep-copied list */
 list CopyListFiltered(list old, int* filter){
 	list newList=NULL , current = old, temp;
@@ -89,7 +88,7 @@ list CopyListFiltered(list old, int* filter){
 }
 
 /* read a Row from original matrix and store all non-zero elemnts as linked-list in Matrix*/
-void add_row_list(struct _spmat *A, const double *row, int i){
+void AddRow(struct _spmat *A, const double *row, int i){
 	int j=0 , firstElement=1 , n=A->n;
 	list current,newCell;
 
@@ -101,7 +100,7 @@ void add_row_list(struct _spmat *A, const double *row, int i){
 
 			newCell = (list)calloc(1,sizeof(cell));
 			if (newCell == NULL || current == NULL){
-					A->free(A);
+				freeMatrix(A);
 				}
 			makeCell(newCell,j,row[j]);
 			assert(newCell->nextCell == NULL);
@@ -117,15 +116,17 @@ void add_row_list(struct _spmat *A, const double *row, int i){
 			current = current->nextCell;
 			current->nextCell=NULL;
 			}
-
 		}
-
 	}
+}
 
+void insertRow(spmat* A , list inList, int i){
+	list copy = CopyList(inList);
+	A->private[i] = copy;
 }
 
   /*frees all Matrix memory*/
- void free_list(struct _spmat *A){
+void freeMatrix(struct _spmat *A){
 	 int j=0, n=A->n;
 	 list current,previous;
 	 for (;j<n;++j){
@@ -142,7 +143,7 @@ void add_row_list(struct _spmat *A, const double *row, int i){
  }
 
  /*multiply matrix A with vector v and saves the vector in result */
- void mult_list(const struct _spmat *A, const double *v, double *result){
+void multMatrix(const struct _spmat *A, const double *v, double *result){
 	 int j=0, n=A->n, column;
 	 double data, dotproduct;
 	 list current;
@@ -165,25 +166,10 @@ void add_row_list(struct _spmat *A, const double *row, int i){
 	 spmat* matrix = (spmat*)(calloc(1,sizeof(spmat)));
 
 	 matrix->n = n;
-	 matrix->add_row = &add_row_list;
-	 matrix->free = &free_list;
-	 matrix->mult = &mult_list;
-	 matrix->private = (list)(calloc(n,sizeof(cell*)));
+	 matrix->private = (calloc(n,sizeof(cell*)));
 	 matrix->Kvec = (int*) calloc (n, sizeof(int));
 
 	 if(&matrix->n == NULL){
-		 free (matrix);
-		 return NULL;
-	 }
-	 if(matrix->add_row == NULL){
-		 free (matrix);
-		 return NULL;
-	 }
-	 if(matrix->free == NULL){
-		 free (matrix);
-		 return NULL;
-	 }
-	 if(matrix->mult == NULL){
 		 free (matrix);
 		 return NULL;
 	 }
@@ -191,7 +177,11 @@ void add_row_list(struct _spmat *A, const double *row, int i){
 		 free (matrix);
 		 return NULL;
 	 }
-
+	 if(matrix->Kvec == NULL){
+		 free (matrix);
+		 return NULL;
+	 }
 	 return matrix;
  }
+
 
