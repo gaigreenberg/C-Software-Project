@@ -120,7 +120,7 @@
 
 		 }
 	 }
-
+ }
 	 
 	 /* calculating the norm-1 of spmat C */
  double norm1(struct _spmat *C){
@@ -146,7 +146,7 @@
  }
 
  /* calculate multiply by 2 vectors */
- double multiVec(double *v1 , double *v2){
+ double multVec(double *v1 , double *v2){
 	 double sum = 0;
 	 int i=0;
 
@@ -160,22 +160,16 @@
 	 return sum;
  }
 
-
-
-
 /* finding eigenValue for the founded eigenVector and normalize it with norm */
 double eigenVal(double *v,struct _spmat *C,double norm){
 	double value,denominator,numerator;
 	double *temp=(double*)calloc(1,sizeof(v));
-	mult_list(C,v,temp);
-	numerator = multiVec(v,temp);
-	denominator= multiVec(v,v);
+	multMatrix(C,v,temp);
+	numerator = multVec(v,temp);
+	denominator= multVec(v,v);
 	value = numerator/denominator;
 	value = value - norm;
 	free(temp);
 	return value;
 }
-
- }
-
 
