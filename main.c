@@ -11,8 +11,6 @@
 #include <stdio.h>
 #include <stddef.h>
 
-#define AM(n) (allocateMatrix(n))
-
 
 int calculateM(spmat* A ,int n ){
 	int i , count = 0 ;
