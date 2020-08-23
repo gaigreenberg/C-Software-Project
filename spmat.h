@@ -14,16 +14,6 @@ typedef struct _spmat {
 	/* Matrix size (n*n) */
 	int		n;
 
-	/* Adds row i the matrix. Called before any other call,
-	 * exactly n times in order (i = 0 to n-1) */
-	void	(*add_row)(struct _spmat *A, const double *row, int i);
-
-	/* Frees all resources used by A */
-	void	(*free)(struct _spmat *A);
-
-	/* Multiplies matrix A by vector v, into result (result is pre-allocated) */
-	void	(*mult)(const struct _spmat *A, const double *v, double *result);
-
 	/* Private field for inner implementation.
 	 * Should not be read or modified externally */
 	list	*private;
@@ -32,9 +22,23 @@ typedef struct _spmat {
 	int* Kvec;
 
 } spmat;
-/* Allocates a new linked-lists sparse matrix of size n */
 
+
+/* Allocates a new linked-lists sparse matrix of size n */
 spmat* spmat_allocate_list(int n);
+
+/* Multiplies matrix A by vector v, into result (result is pre-allocated) */
+void multMatrix(const struct _spmat *A, const double *v, double *result);
+
+/* Frees all resources used by A */
+void freeMatrix(struct _spmat *A);
+
+/* Adds row i the matrix. Called before any other call,
+ * exactly n times in order (i = 0 to n-1) */
+void AddRow (struct _spmat *A, const double *row, int i);
+
+/*recieves a list and copy iy to A[i]*/
+void insertRow(spmat* A , list inList, int i);
 
 /* load info provided into the cell: column & data*/
 void makeCell (cell* cell, int column, double data);
@@ -45,9 +49,11 @@ void CopyCell (list origin , list copy);
 /* make a deep-copied list */
 list CopyList(list old);
 
-/* make a deep-copied filtered by g group list */
+/* make a deep-copied list */
 list CopyListFiltered(list old, int* filter);
 
-void	mult_list( struct _spmat *A,  double *v, double *result);
+
+
+
 
 #endif

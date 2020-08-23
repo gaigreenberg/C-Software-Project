@@ -7,6 +7,7 @@
 
 /* calculate M given matrix A - A is a spmat  */
 #include "spmat.h"
+#include <stdio.h>
 #include <stddef.h>
 
 
@@ -21,5 +22,8 @@ int calculateM(spmat* A ,int n ){
 int main(int argc, char* argv[]) {
 	return 0;
 }
+
+
+
 
 
