@@ -162,7 +162,7 @@ void multMatrix(const struct _spmat *A, const double *v, double *result){
  }
 
   /* Allocates a new linked-lists sparse matrix of size n */
- spmat* spmat_allocate_list(int n){
+ spmat* allocateMatrix(int n){
 	 spmat* matrix = (spmat*)(calloc(1,sizeof(spmat)));
 
 	 matrix->n = n;
