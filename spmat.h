@@ -25,7 +25,7 @@ typedef struct _spmat {
 
 
 /* Allocates a new linked-lists sparse matrix of size n */
-spmat* spmat_allocate_list(int n);
+spmat* allocateMatrix(int n);
 
 /* Multiplies matrix A by vector v, into result (result is pre-allocated) */
 void multMatrix(const struct _spmat *A, const double *v, double *result);
