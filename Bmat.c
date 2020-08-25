@@ -1,13 +1,11 @@
 /*
  * Bmat.c
  */
-#include <stdio.h>
-#include <stdlib.h>
-#include <stddef.h>
-#include "spmat.h"
+
+#include "Bmat.h"
 
  /* creating spmat B from A */
- void createB(struct _spmat *A ,int m , struct _spmat *B){
+ void createB(spmat *A ,int m , struct _spmat *B){
 	 list  current;
 	 double* rowB;
 	 int i, j=0, column;
@@ -36,7 +34,7 @@
  }
 
 /* create B[g] by given B and group g of vertexes from V */
- void createBg(struct _spmat *B,int *g,struct _spmat *Bg){
+ void createBg(spmat *B,int *g,struct _spmat *Bg){
 	 int i;
 	 list newlist;
 	 Bg->n = B->n;
@@ -173,3 +171,14 @@ double eigenVal(double *v,struct _spmat *C,double norm){
 	return value;
 }
 
+
+/*
+ * to write - Senior Greenberg
+ *
+ * */
+
+/* calculate Q: by definition */
+double calculateQ(int* s, spmat* B);
+
+/* calculate eigen pair: return eigan val and store vector in vec*/
+int calculateEigenPair(double* vec, spmat* BgHat, int n);

@@ -7,6 +7,7 @@
 
 /* calculate M given matrix A - A is a spmat  */
 #include "spmat.h"
+#include "Bmat.h"
 #include <assert.h>
 #include <stdio.h>
 #include <stddef.h>
@@ -50,6 +51,7 @@ void loadMatrix(FILE* input, spmat* matrix, int n){
 	int *row, *mask;
 
 	rewind(input);
+	r = fread(&n, 1, sizeof(int), input);
 	assert(r==1);
 	row =  (int*)calloc(n, sizeof(int));
 	mask = (int*)calloc(n, sizeof(int));
@@ -63,10 +65,47 @@ void loadMatrix(FILE* input, spmat* matrix, int n){
 	free(mask);
 }
 
+/* write partiton with maximized modularity*/
 void writePartition(FILE* output, int n){
 
-
 }
+
+/*B should be created before, Bg should be allocated before*/
+int Alogrithem2(spmat* B, spmat* Bg, int* g, int n){
+	double *value, *vec;
+	int j,*s,Q;
+	vec = (double*)calloc(n, sizeof(double));
+	s   = (int*)calloc(n,sizeof(int));
+	createBg(B,g,Bg);
+	createBgHat(Bg);
+
+	value = calculateEigenPair(vec, value, BgHat);
+
+	if (value <=0){
+		return 0;
+	}
+	for(j=0; j<n ; j++){
+		if(vec[j]<=0){
+			s[j] = -1;
+		}else{
+			s[j] = 1;
+		}
+
+	}
+	Q = calculateQ(s, B);
+	if(Q < 0){
+		return 0;
+	}
+	for (j=0; j<n; j++){
+		g[j] = g[j] * s[j];
+	}
+
+	free(vec);
+	free(s);
+	return 1;
+}
+
+
 
 /* argv[1] = input || argv[2] = output */
 int main(int argc, char* argv[]) {
