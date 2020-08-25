@@ -181,6 +181,7 @@ void multMatrix(const struct _spmat *A, const double *v, double *result){
 		 free (matrix);
 		 return NULL;
 	 }
+	 return matrix;
  }
 
 
