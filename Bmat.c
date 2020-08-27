@@ -178,7 +178,22 @@ double eigenVal(double *v,struct _spmat *C,double norm){
  * */
 
 /* calculate Q: by definition */
-double calculateQ(int* s, spmat* B);
+double calculateQ(int* s, spmat* B){
+	double result, *temp=(double*)calloc(1,sizeof(B->n));
+	multMatrix(B,s,temp);
+	result=multVec(s,temp);
+	return (result*0.5);
+
+
+}
 
 /* calculate eigen pair: return eigan val and store vector in vec*/
-int calculateEigenPair(double* vec, spmat* BgHat, int n);
+double calculateEigenPair(double* vec, spmat* BgHat, int n){
+	double norm,value;
+
+	norm = norm1(BgHat);
+	shiftC(norm,BgHat);
+	powerIteration(BgHat, vec, n );
+	value = eigenVal(vec,BgHat,norm);
+	return value;
+}
