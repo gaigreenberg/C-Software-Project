@@ -46,7 +46,7 @@ double eigenVal(double *v, spmat *C,double norm);
 
 double calculateQ(int* s, spmat* B);
 
-int calculateEigenPair(double* vec, spmat* BgHat, int n);
+double calculateEigenPair(double* vec, spmat* BgHat, int n);
 
 
 #endif /* BMAT_H_ */
