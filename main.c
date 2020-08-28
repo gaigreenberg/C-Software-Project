@@ -72,16 +72,18 @@ void loadMatrix(FILE* input, spmat* matrix, int n){
 void wrtieDivision(FILE* output, division* div){
 	int j, k, n=div->size;
 	int* members;
-	GroupCell* cell = div->groups;
+	groupCell *current = div->groups, *prev;
 
 	fwrite(&n, sizeof(int), 1 , output);
 
 	for (j=0;j<n;j++){
-		k = groupSize(cell);
-		members = groupRep(cell);
+		k = groupSize(current);
+		members = current->grp->members;
 		fwrite(&k, sizeof(int), 1, output);
 		fwrite(members, sizeof(int), k, output);
-		free(members);
+		prev = current;
+		current = current->nextGroup;
+		freeGroupCell(prev);
 
 	}
 }
@@ -120,6 +122,33 @@ int Alogrithem2(spmat* B, spmat* Bg, int* subDivision, int* g, int n, int* a, in
 
 	free(vec);
 	return 1;
+}
+
+division* Alogrithem3(spmat* B, spmat* Bg, int n){
+	division *O = calloc(1, sizeof(division)),*P=calloc(1, sizeof(division));
+	group *X = calloc(1,sizeof(group)), *Y=calloc(1,sizeof(group));
+	int *g = calloc(n, sizeof(int)), *subDiv = calloc(n,sizeof(int));
+	int a=0 ,b=0, divideable;
+
+	setTrivialDivision(P,n);
+	setEmptyDivision(O);
+	while (P->size > 0){
+		removeG(P, g); /* what to doo?? */;
+		divideable = Alogrithem2(B, Bg, subDiv,g,n,&a,&b );
+		if(divideable){
+			subDividedBySubdiviosion(X,Y, subDiv,n, a, b);
+			reOrder(P,O,X,Y);
+		}
+		else{
+			createDivision(X, n, g);
+			add(O,X);
+		}
+	}
+
+
+	free(P);
+	return O;
+
 }
 
 /* argv[1] = input || argv[2] = output */
