@@ -8,9 +8,6 @@
 
 #ifndef PITER_H_
 #define PITER_H_
-#include <stdio.h>
-#include <stdlib.h>
-#include <stddef.h>
 #include "spmat.h"
 #include "Bmat.h"
 

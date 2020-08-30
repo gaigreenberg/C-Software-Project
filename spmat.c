@@ -161,6 +161,25 @@ void multMatrix(const struct _spmat *A, const double *v, double *result){
 	 }
  }
 
+/*multiply matrix A with vector v and saves the vector in result */
+void multMatrixByIntVec(const struct _spmat *A, const int *v, double *result){
+	 int j=0, n=A->n, column;
+	 double data, dotproduct;
+	 list current;
+	 for (;j<n;++j){
+		 dotproduct = 0.0;
+		 current = ((list*)(A->private))[j];
+		 while (current != NULL){
+			 column = current->col;
+			 data = current->value;
+			 dotproduct += data * (double)v[column];
+			 current = current->nextCell;
+		 }
+		 result[j] = dotproduct;
+
+	 }
+}
+
   /* Allocates a new linked-lists sparse matrix of size n */
  spmat* allocateMatrix(int n){
 	 spmat* matrix = (spmat*)(calloc(1,sizeof(spmat)));

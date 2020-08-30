@@ -9,6 +9,7 @@
 #ifndef DIVISION_H_
 #define DIVISION_H_
 	#include "stddef.h"
+	#include "stdlib.h"
 
 	typedef struct _group{
 		int size;		 /*number of vertices in group*/

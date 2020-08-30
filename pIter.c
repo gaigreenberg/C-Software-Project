@@ -5,9 +5,10 @@
  *      Author: gai
  *      this is a copy of relevent funtions of hw2
  */
+
 #define epsilon 0.00001
-#include "spmat.h"
-#include "Bmat.h"
+#include "pIter.h"
+#include <math.h>
 
 void generateRandomVec(double* vector, int size){
 		int i;

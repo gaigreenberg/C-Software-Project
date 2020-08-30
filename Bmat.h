@@ -15,6 +15,7 @@
 #include <stdlib.h>
 #include <stddef.h>
 #include "spmat.h"
+#include "pIter.h"
 
  /* creating spmat B from A */
  void createB(spmat *A ,int m , spmat *B);
@@ -33,16 +34,14 @@
 	 /* calculating the norm-1 of spmat C */
  double norm1(struct _spmat *C);
 
- /* calculate multiply by 2 vectors */
+ /* calculate multiply by 2  double vectors */
  double multVec(double *v1 , double *v2);
+
+ /* calculate multiply by 2 vectors: one int , one double */
+ double multVecIntDouble(int *Vint , double *Vdouble);
 
 /* finding eigenValue for the founded eigenVector and normalize it with norm */
 double eigenVal(double *v, spmat *C,double norm);
-
-/*
- * to write - Senior Greenberg
- *
- * */
 
 double calculateQ(int* s, spmat* B);
 

@@ -158,6 +158,21 @@
 	 return sum;
  }
 
+ /* calculate multiply by 2 vectors: one int , one double */
+ double multVecIntDouble(int *Vint , double *Vdouble){
+	 double sum = 0;
+	 int i=0;
+
+	 if(sizeof(Vint)!=sizeof(Vdouble)){
+		 printf("vec's size's dont match");
+		 exit(0);
+	 }
+	 for(;i<sizeof(Vint);++i){
+		 sum=((double)Vint[i])*Vdouble[i];
+	 }
+	 return sum;
+ }
+
 /* finding eigenValue for the founded eigenVector and normalize it with norm */
 double eigenVal(double *v,struct _spmat *C,double norm){
 	double value,denominator,numerator;
@@ -171,17 +186,11 @@ double eigenVal(double *v,struct _spmat *C,double norm){
 	return value;
 }
 
-
-/*
- * to write - Senior Greenberg
- *
- * */
-
 /* calculate Q: by definition */
 double calculateQ(int* s, spmat* B){
 	double result, *temp=(double*)calloc(1,sizeof(B->n));
-	multMatrix(B,s,temp);
-	result=multVec(s,temp);
+	multMatrixByIntVec(B,s,temp);
+	result=multVecIntDouble(s,temp);
 	return (result*0.5);
 
 
