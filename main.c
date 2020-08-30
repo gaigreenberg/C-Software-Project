@@ -11,9 +11,11 @@
 #include "division.h"
 #include <assert.h>
 #include <stdio.h>
-#include <stddef.h>
+#include <time.h>
 
+#define allocateDivision (division*)calloc(1,sizeof(division))
 
+/*claculate M of matrix A when M is the sum of vertices degrees */
 int calculateM(spmat* A ,int n ){
 	int i , count = 0 ;
 	for(i=0 ; i<n ; ++i ){
@@ -23,6 +25,7 @@ int calculateM(spmat* A ,int n ){
 
 }
 
+/* update row according to mask */
 void updateRow(double* row, int n, int* mask, int k){
 	int i, neighbor, j=0;
 
@@ -60,12 +63,14 @@ void loadMatrix(FILE* input, spmat* matrix, int n){
 	for (i=0; i<n; i++){
 		fread(&k, 1 ,sizeof(int) , input);
 		matrix->Kvec[i]=k;
-		fread(&row, n , sizeof(int), input);
+		fread(&mask, n , sizeof(int), input);
 		updateRow(row,n,mask,k);
 		AddRow(matrix , row, i);
 	}
 	free(row);
 	free(mask);
+	fclose(input);
+
 }
 
 /* write partiton with maximized modularity*/
@@ -86,6 +91,7 @@ void wrtieDivision(FILE* output, division* div){
 		freeGroupCell(prev);
 
 	}
+	fclose(output);
 }
 
 /*B should be created before, Bg,subDivision should be allocated before*/
@@ -124,16 +130,16 @@ int Alogrithem2(spmat* B, spmat* Bg, int* subDivision, int* g, int n, int* a, in
 	return 1;
 }
 
-division* Alogrithem3(spmat* B, spmat* Bg, int n){
-	division *O = calloc(1, sizeof(division)),*P=calloc(1, sizeof(division));
+/*B should be created before, divisions O&P should be created before before*/
+void Alogrithem3(spmat* B, int n, division* O, division* P){
 	group *X = calloc(1,sizeof(group)), *Y=calloc(1,sizeof(group));
 	int *g = calloc(n, sizeof(int)), *subDiv = calloc(n,sizeof(int));
 	int a=0 ,b=0, divideable;
+	spmat* Bg;
 
-	setTrivialDivision(P,n);
-	setEmptyDivision(O);
 	while (P->size > 0){
 		removeG(P, g); /* what to doo?? */;
+		Bg = allocateMatrix(n);
 		divideable = Alogrithem2(B, Bg, subDiv,g,n,&a,&b );
 		if(divideable){
 			subDividedBySubdiviosion(X,Y, subDiv,n, a, b);
@@ -143,37 +149,48 @@ division* Alogrithem3(spmat* B, spmat* Bg, int n){
 			createDivision(X, n, g);
 			add(O,X);
 		}
+		free(Bg);
 	}
-
-
-	free(P);
-	return O;
-
 }
 
 /* argv[1] = input || argv[2] = output */
 int main(int argc, char* argv[]) {
-	FILE *inMatrix, *outMatrix;
-	spmat *A;
-	division* div=calloc(1,sizeof(division));
-	int n;
+	FILE *inMatrix, *bestDivisiob;
+	spmat *A, *B;
+	division *O = allocateDivision, *P = allocateDivision;
+	int n,M;
 
 	if(argc != 3){
 		printf("invalid number of arguments!");
 		return(1);
 	}
 	inMatrix  = fopen(argv[1],"r");
-	outMatrix = fopen(argv[2],"w");
+	bestDivisiob = fopen(argv[2],"w");
+
+	/*read input matrix to sparse and store as Sparse Matrix */
 	fread(&n, 1 ,sizeof(int), inMatrix);
-	A = allocateMatrix(n);/* B = allocateMatrix(n) ; C = allocateMatrix(n);*/
+	A = allocateMatrix(n);
 	loadMatrix(inMatrix, A, n);
+	free(inMatrix);
 
+	/* pre calculations */
+	B  = allocateMatrix(n);
+	M  = calculateM(A,n);
+	createB(A,M,B);
+	free(A);
 
-	/* BODY */
+	/* main calculation and outputting*/
+	setEmptyDivision(O);
+	setTrivialDivision(P,n);
+	Alogrithem3(B, n, O, P);
+	wrtieDivision(bestDivisiob,O);
 
+	/*free memory and finish program */
 
-	wrtieDivision(outMatrix,div);
-
+	free(bestDivisiob);
+	freeDivision(O);
+	freeDivision(P);
+	freeMatrix(B);
 	return 0;
 }
 

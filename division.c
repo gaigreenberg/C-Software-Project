@@ -1,7 +1,6 @@
 
 #include "division.h"
 
-
 void createGroupCell(groupCell* cell , group* ingroup){
 	cell->grp = ingroup;
 	cell->nextGroup = NULL;
@@ -45,7 +44,7 @@ void createDivision(group* A, int n, int* g){
 			i++;
 		}
 	}
-	members= (int*)realloc(members, i);
+	members = (int*)realloc(members, i);
 	A->size = i;
 	A->members = members;
 }
@@ -90,7 +89,7 @@ void setEmptyDivision(division* div){
 	div->groups = NULL;
 }
 
-/*removes first group from division, creater a vector representation of it & free group memory
+/*removes first group from division, make g a vector representation of it & free group memory
  * new groups will be created when transformed from vector represtation back to group DS*/
 void removeG(division* P, int* g){
 	int j, index;

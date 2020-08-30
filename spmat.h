@@ -27,8 +27,11 @@ typedef struct _spmat {
 /* Allocates a new linked-lists sparse matrix of size n */
 spmat* allocateMatrix(int n);
 
-/* Multiplies matrix A by vector v, into result (result is pre-allocated) */
+/* Multiplies matrix A by double vector v, into result (result is pre-allocated) */
 void multMatrix(const struct _spmat *A, const double *v, double *result);
+
+/* Multiplies matrix A by int vector v, into result (result is pre-allocated) */
+void multMatrixByIntVec(const struct _spmat *A, const int *v, double *result);
 
 /* Frees all resources used by A */
 void freeMatrix(struct _spmat *A);
@@ -51,9 +54,5 @@ list CopyList(list old);
 
 /* make a deep-copied list */
 list CopyListFiltered(list old, int* filter);
-
-
-
-
 
 #endif
