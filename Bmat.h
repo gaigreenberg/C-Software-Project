@@ -1,7 +1,7 @@
 /*
  * Bmat.h
  *
- *  Created on: 25 ·‡Â‚◊ 2020
+ *  Created on: 25 √°√†√•√¢√ó 2020
  *      Author: omlad
  */
 
@@ -36,13 +36,12 @@
  /* calculate multiply by 2 vectors */
  double multVec(double *v1 , double *v2);
 
+/* calculate multiply by 2 vectors: one int , one double */
+ double multVecIntDouble(int *Vint , double *Vdouble);
+
 /* finding eigenValue for the founded eigenVector and normalize it with norm */
 double eigenVal(double *v, spmat *C,double norm);
 
-/*
- * to write - Senior Greenberg
- *
- * */
 
 double calculateDeltaQ(int* s, spmat* B);
 
