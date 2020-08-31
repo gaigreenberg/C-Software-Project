@@ -73,8 +73,8 @@ int groupSize(groupCell* A){
 void setTrivialDivision(division* div, int n){
 	groupList list = calloc(1,sizeof(groupCell));
 	int i;
-	div->size = 1;
 	int* trivial = (int*)(calloc(n,sizeof(char)));
+	div->size = 1;
 	for (i=0; i<n; i++){
 		trivial[i] = i;
 	}

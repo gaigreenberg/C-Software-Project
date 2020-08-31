@@ -144,15 +144,15 @@
  }
 
  /* calculate multiply by 2 vectors */
- double multVec(double *v1 , double *v2){
+ double multVec(double *v1 , double *v2, int n1, int n2){
 	 double sum = 0;
 	 int i=0;
 
-	 if(sizeof(v1)!=sizeof(v2)){
+	 if(n1 != n2){
 		 printf("vec's size's dont match");
-		 exit(0);
+		 exit(EXIT_FAILURE);
 	 }
-	 for(;i<sizeof(v1);++i){
+	 for(;i<n1;++i){
 		 sum=v1[i]*v2[i];
 	 }
 	 return sum;
@@ -161,10 +161,10 @@
 /* finding eigenValue for the founded eigenVector and normalize it with norm */
 double eigenVal(double *v,struct _spmat *C,double norm){
 	double value,denominator,numerator;
-	double *temp=(double*)calloc(1,sizeof(v));
+	double *temp=(double*)calloc(C->n,sizeof(double));
 	multMatrix(C,v,temp);
-	numerator = multVec(v,temp);
-	denominator= multVec(v,v);
+	numerator = multVec(v,temp,C->n, C->n);
+	denominator= multVec(v,v,C->n, C->n);
 	value = numerator/denominator;
 	value = value - norm;
 	free(temp);
@@ -172,27 +172,26 @@ double eigenVal(double *v,struct _spmat *C,double norm){
 }
 
  /* calculate multiply by 2 vectors: one int , one double */
- double multVecIntDouble(int *Vint , double *Vdouble){
+ double multVecIntDouble(int *Vint , double *Vdouble, int nInt , int nDouble){
 	 double sum = 0;
 	 int i=0;
 
-	 if(sizeof(Vint)!=sizeof(Vdouble)){
+	 if(nInt != nDouble){
 		 printf("vec's size's dont match");
-		 exit(0);
+		 exit(EXIT_FAILURE);
 	 }
-	 for(;i<sizeof(Vint);++i){
-		 sum=((double)Vint[i])*Vdouble[i];
+	 for(;i<nInt;++i){
+		 sum = ((double)Vint[i])*Vdouble[i];
 	 }
 	 return sum;
  }
 
 
-
 /* calculate Q: by definition */
 double calculateDeltaQ(int* s, spmat* B){
-	double result, *temp=(double*)calloc(1,sizeof(B->n));
+	double result, *temp=(double*)calloc(B->n,sizeof(double));
 	multMatrixByIntVec(B,s,temp);
-	result=multVecIntDouble(s,temp);
+	result = multVecIntDouble(s,temp, B->n,B->n);
 	return (result*0.5);
 
 
@@ -229,10 +228,11 @@ int unmovedStart(int* unmoved,int n,int* s){
 
 
 void modularityMaximization(spmat* BgHat , int* s){
-	double* score ,improve ;
+	double *score ,*improve ;
 	double Q0,maxscore,maxImprove,deltaQ=0;
-	int n ,ng, i,j ,maxScoreVertex,maxImproveIndex;;
-	int* unmoved,indices;
+	int n ,ng, i,j ,maxScoreVertex,maxImproveIndex=-1;
+	int *unmoved,*indices;
+
 	n=BgHat->n;
 	unmoved=(int*)calloc(1,sizeof(n));
 	indices=(int*)calloc(1,sizeof(n));

@@ -17,6 +17,8 @@
 #define problem 1
 #define OK 0
 
+
+/*error detect */
 int readErrOccurred(int actual, int expected, int errorNum){
 	if(actual != expected){
 		printf("error in loadMatrix #%d",errorNum);
@@ -25,7 +27,7 @@ int readErrOccurred(int actual, int expected, int errorNum){
 	return 0;
 }
 
-int loadFiled(int readRes){
+int loadFailed(int readRes){
 	if(readRes != OK){
 		printf("failed loading Matrix A!");
 		return problem;
@@ -147,7 +149,7 @@ int Alogrithem2(spmat* B, spmat* Bg, int* subDivision, int* g, int n, int* a, in
 		}
 
 	}
-	Q = calculateQ(subDivision, B);
+	Q = calculateDeltaQ(subDivision, B);
 	if(Q < 0){
 		return 0;
 	}
@@ -197,7 +199,7 @@ int main(int argc, char* argv[]) {
 	fread(&n, 1 ,sizeof(int), inMatrix);
 	A = allocateMatrix(n);
 	r = loadMatrix(inMatrix, A, n);
-	if (loadFiled(r)) {return problem;}
+	if (loadFailed(r)) {return problem;}
 	fclose(inMatrix);
 	free(inMatrix);
 

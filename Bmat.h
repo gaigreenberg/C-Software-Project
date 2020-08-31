@@ -15,6 +15,7 @@
 #include <stdlib.h>
 #include <stddef.h>
 #include "spmat.h"
+#include "pIter.h"
 
  /* creating spmat B from A */
  void createB(spmat *A ,int m , spmat *B);
@@ -34,10 +35,10 @@
  double norm1(struct _spmat *C);
 
  /* calculate multiply by 2 vectors */
- double multVec(double *v1 , double *v2);
+ double multVec(double *v1 , double *v2, int n1, int n2);
 
 /* calculate multiply by 2 vectors: one int , one double */
- double multVecIntDouble(int *Vint , double *Vdouble);
+ double multVecIntDouble(int *Vint , double *Vdouble, int nInt, int nDouble);
 
 /* finding eigenValue for the founded eigenVector and normalize it with norm */
 double eigenVal(double *v, spmat *C,double norm);
