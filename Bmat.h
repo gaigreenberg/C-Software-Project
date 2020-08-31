@@ -15,7 +15,6 @@
 #include <stdlib.h>
 #include <stddef.h>
 #include "spmat.h"
-#include "pIter.h"
 
  /* creating spmat B from A */
  void createB(spmat *A ,int m , spmat *B);
@@ -34,18 +33,28 @@
 	 /* calculating the norm-1 of spmat C */
  double norm1(struct _spmat *C);
 
- /* calculate multiply by 2  double vectors */
+ /* calculate multiply by 2 vectors */
  double multVec(double *v1 , double *v2);
-
- /* calculate multiply by 2 vectors: one int , one double */
- double multVecIntDouble(int *Vint , double *Vdouble);
 
 /* finding eigenValue for the founded eigenVector and normalize it with norm */
 double eigenVal(double *v, spmat *C,double norm);
 
-double calculateQ(int* s, spmat* B);
+/*
+ * to write - Senior Greenberg
+ *
+ * */
 
+double calculateDeltaQ(int* s, spmat* B);
+
+/* calculate eigen pair: return eigan val and store vector in vec*/
 double calculateEigenPair(double* vec, spmat* BgHat, int n);
 
+/* initial array values to -1 */
+void indicesStart(int* indices,int n);
 
+/* initial array unmoved to 1 if vertex on g - sub function for modularityMximization*/
+int unmovedStart(int* unmoved,int n,int* s);
+
+/* function for modularity maximization - algorithem 4 */
+void modularityMaximization(spmat* BgHat , int* s);
 #endif /* BMAT_H_ */
