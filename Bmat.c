@@ -186,7 +186,6 @@ double eigenVal(double *v,struct _spmat *C,double norm){
 	 return sum;
  }
 
-
 /* calculate Q: by definition */
 double calculateDeltaQ(int* s, spmat* B){
 	double result, *temp=(double*)calloc(B->n,sizeof(double));
