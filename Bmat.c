@@ -158,21 +158,6 @@
 	 return sum;
  }
 
- /* calculate multiply by 2 vectors: one int , one double */
- double multVecIntDouble(int *Vint , double *Vdouble){
-	 double sum = 0;
-	 int i=0;
-
-	 if(sizeof(Vint)!=sizeof(Vdouble)){
-		 printf("vec's size's dont match");
-		 exit(0);
-	 }
-	 for(;i<sizeof(Vint);++i){
-		 sum=((double)Vint[i])*Vdouble[i];
-	 }
-	 return sum;
- }
-
 /* finding eigenValue for the founded eigenVector and normalize it with norm */
 double eigenVal(double *v,struct _spmat *C,double norm){
 	double value,denominator,numerator;
@@ -186,8 +171,14 @@ double eigenVal(double *v,struct _spmat *C,double norm){
 	return value;
 }
 
+
+/*
+ * to write - Senior Greenberg
+ *
+ * */
+
 /* calculate Q: by definition */
-double calculateQ(int* s, spmat* B){
+double calculateDeltaQ(int* s, spmat* B){
 	double result, *temp=(double*)calloc(1,sizeof(B->n));
 	multMatrixByIntVec(B,s,temp);
 	result=multVecIntDouble(s,temp);
@@ -199,10 +190,91 @@ double calculateQ(int* s, spmat* B){
 /* calculate eigen pair: return eigan val and store vector in vec*/
 double calculateEigenPair(double* vec, spmat* BgHat, int n){
 	double norm,value;
-
 	norm = norm1(BgHat);
 	shiftC(norm,BgHat);
 	powerIteration(BgHat, vec, n );
 	value = eigenVal(vec,BgHat,norm);
 	return value;
+}
+
+/* initial array values to -1 */
+void indicesStart(int* indices,int n){
+	int i;
+	for (i = 0; i < n; ++i) {
+		indices[i]=-1;
+	}
+}
+/* initial array unmoved to 1 if vertex on g */
+int unmovedStart(int* unmoved,int n,int* s){
+	int i,ng=0;
+	for (i = 0; i < n; ++i) {	/*making the unmoved group represnted by array*/
+			if(s[i]!=0){
+				unmoved[i]=1;
+				++ng;
+			}
+		}
+	return ng;
+}
+
+
+void modularityMaximization(spmat* BgHat , int* s){
+	double* score ,improve ;
+	double Q0,maxscore,maxImprove,deltaQ=0;
+	int n ,ng, i,j ,maxScoreVertex,maxImproveIndex;;
+	int* unmoved,indices;
+	n=BgHat->n;
+	unmoved=(int*)calloc(1,sizeof(n));
+	indices=(int*)calloc(1,sizeof(n));
+	score=(double*)calloc(1,sizeof(n));
+	improve=(double*)calloc(1,sizeof(n));
+	indicesStart(indices,n);
+	ng=unmovedStart(unmoved,n,s);
+	while(deltaQ>=0){	/* main while according to line 31 of the alg'*/
+	for (i = 0; i < ng; ++i) {	/* lines 3-20 alg4*/
+			Q0 = (calculateDeltaQ(s,BgHat)*2);
+			s[0]=-s[0];
+			score[0]=(calculateDeltaQ(s,BgHat)*2)-Q0;
+			maxscore=score[0];
+			maxScoreVertex=0;
+			s[0]=-s[0];
+
+			for (j = 1; j < n; ++j) {/*for lines 6-10 on alg4 */
+				if(unmoved[j]!=0){
+					s[j]=-s[j];
+					score[j]=(calculateDeltaQ(s,BgHat)*2)-Q0;
+					s[j]=-s[j];
+					if(score[j]>maxscore){
+						maxScoreVertex=j;
+						maxscore=score[j];
+					}
+				}
+			}
+			s[maxScoreVertex]=-s[maxScoreVertex];
+			indices[i]=maxScoreVertex;
+			if(i==0){
+				improve[i]=score[maxScoreVertex];
+				maxImprove=improve[i];
+				maxImproveIndex=i;
+			}else{
+				improve[i]=improve[i-1]+score[maxScoreVertex];
+				if(improve[i]>maxImprove){ /*maintain maximprove for next part*/
+					maxImprove=improve[i];
+					maxImproveIndex=i;
+				}
+			}
+			unmoved[maxScoreVertex]=0;
+		}
+	for(i=ng-1;i>maxImproveIndex;--i){
+		s[indices[i]]=-s[indices[i]];
+	}
+	if(maxImproveIndex==(ng-1)){
+		deltaQ=0;
+	}else{
+		deltaQ=improve[maxImproveIndex];
+		}
+	}
+	free(unmoved);
+	free(indices);
+	free(score);
+	free(improve);
 }
