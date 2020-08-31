@@ -14,6 +14,25 @@
 #include <time.h>
 
 #define allocateDivision (division*)calloc(1,sizeof(division))
+#define problem 1
+#define OK 0
+
+int readErrOccurred(int actual, int expected, int errorNum){
+	if(actual != expected){
+		printf("error in loadMatrix #%d",errorNum);
+		return problem;
+	}
+	return 0;
+}
+
+int loadFiled(int readRes){
+	if(readRes != OK){
+		printf("failed loading Matrix A!");
+		return problem;
+	}
+	return OK;
+
+}
 
 /*claculate M of matrix A when M is the sum of vertices degrees */
 int calculateM(spmat* A ,int n ){
@@ -49,27 +68,34 @@ void updateRow(double* row, int n, int* mask, int k){
 	}
 }
 
-/* read input and store in matrix, after allocation*/
-void loadMatrix(FILE* input, spmat* matrix, int n){
+/* read input and store in matrix, after allocation
+ * closes input file*/
+int loadMatrix(FILE* input, spmat* matrix, int n){
 	int i,r,k;
 	int *mask;
 	double *row;
 
 	rewind(input);
 	r = fread(&n, 1, sizeof(int), input);
-	assert(r==1);
+	if(readErrOccurred(r,1,1)){return problem;}		/*errror 1*/
+
 	row =  (double*)calloc(n, sizeof(int));
 	mask = (int*)calloc(n, sizeof(int));
 	for (i=0; i<n; i++){
-		fread(&k, 1 ,sizeof(int) , input);
+		r = fread(&k, 1 ,sizeof(int) , input);
+		if(readErrOccurred(r,1,2)){return problem;} /*error 2*/
+
 		matrix->Kvec[i]=k;
-		fread(&mask, n , sizeof(int), input);
+		r = fread(&mask, n , sizeof(int), input);
+		if(readErrOccurred(r,n,3)){return problem;} /*error 3*/
+
 		updateRow(row,n,mask,k);
 		AddRow(matrix , row, i);
 	}
 	free(row);
 	free(mask);
 	fclose(input);
+	return OK;
 
 }
 
@@ -158,7 +184,7 @@ int main(int argc, char* argv[]) {
 	FILE *inMatrix, *bestDivisiob;
 	spmat *A, *B;
 	division *O = allocateDivision, *P = allocateDivision;
-	int n,M;
+	int n,M,r;
 
 	if(argc != 3){
 		printf("invalid number of arguments!");
@@ -170,7 +196,9 @@ int main(int argc, char* argv[]) {
 	/*read input matrix to sparse and store as Sparse Matrix */
 	fread(&n, 1 ,sizeof(int), inMatrix);
 	A = allocateMatrix(n);
-	loadMatrix(inMatrix, A, n);
+	r = loadMatrix(inMatrix, A, n);
+	if (loadFiled(r)) {return problem;}
+	fclose(inMatrix);
 	free(inMatrix);
 
 	/* pre calculations */
