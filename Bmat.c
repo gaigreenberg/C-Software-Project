@@ -171,11 +171,22 @@ double eigenVal(double *v,struct _spmat *C,double norm){
 	return value;
 }
 
+ /* calculate multiply by 2 vectors: one int , one double */
+ double multVecIntDouble(int *Vint , double *Vdouble){
+	 double sum = 0;
+	 int i=0;
 
-/*
- * to write - Senior Greenberg
- *
- * */
+	 if(sizeof(Vint)!=sizeof(Vdouble)){
+		 printf("vec's size's dont match");
+		 exit(0);
+	 }
+	 for(;i<sizeof(Vint);++i){
+		 sum=((double)Vint[i])*Vdouble[i];
+	 }
+	 return sum;
+ }
+
+
 
 /* calculate Q: by definition */
 double calculateDeltaQ(int* s, spmat* B){
