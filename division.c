@@ -1,5 +1,8 @@
 
 #include "division.h"
+#define cn(n) ((int*)calloc(n,sizeof(int)))
+#define cg ((groupList)calloc(1,sizeof(groupCell)))
+#define ggc ((group*)calloc(1,sizeof(group)))
 
 void createGroupCell(groupCell* cell , group* ingroup){
 	cell->grp = ingroup;
@@ -71,16 +74,19 @@ int groupSize(groupCell* A){
 }
 
 void setTrivialDivision(division* div, int n){
-	groupList list = calloc(1,sizeof(groupCell));
+	groupList list = (groupList)calloc(1,sizeof(groupCell));
+	group* gr =  (group*)(calloc(1,sizeof(group)));
 	int i;
-	int* trivial = (int*)(calloc(n,sizeof(char)));
-	div->size = 1;
+	int* trivial = (int*)(calloc(n,sizeof(int)));
 	for (i=0; i<n; i++){
 		trivial[i] = i;
 	}
+	gr->members = trivial;
+	gr->size = n;
+	list->nextGroup=NULL;
+	list->grp=gr;
 	div->groups = list;
-	list->grp->members = trivial;
-	list->grp->size = n;
+	div->size = 1;
 
 }
 
@@ -138,4 +144,38 @@ void freeGroupCell(groupList cell){
 	freeGroup(cell->grp);
 	free (cell);
 }
+
+/*set div as a pre=set division - written just for testing filw writting*/
+void madeUpDivision(division* div){
+	groupList a=cg,b=cg,c=cg,d=cg,e=cg;
+	group *ga=ggc, *gb=ggc, *gc=ggc, *gd=ggc, *ge=ggc;
+	int *aa=cn(4), *ab=cn(5), *ac=cn(5), *ad=cn(1), *ae=cn(5);
+
+	aa[0]=0;aa[1]=10;aa[2]=15;aa[3]=16;
+	ab[0]=1;ab[1]=11;ab[2]=17;ab[3]=18;ab[4]=19;
+	ac[0]=2;ac[1]=9;ac[2]=12;ac[3]=13;ac[4]=14;
+	ad[0]=3;
+	ae[0]=4;ae[1]=5;ae[2]=6;ae[3]=7;ae[4]=8;
+
+	ga->size=4 ; ga->members=aa;
+	gb->size=5 ; gb->members=ab;
+	gc->size=5 ; gc->members=ac;
+	gd->size=1 ; gd->members=ad;
+	ge->size=5 ; ge->members=ae;
+
+	a->grp = ga; a->nextGroup=b;
+	b->grp = gb; b->nextGroup=c;
+	c->grp = gc; c->nextGroup=d;
+	d->grp = gd; d->nextGroup=e;
+	e->grp = ge; e->nextGroup=NULL;
+
+	div->groups=a;
+	div->size = 5;
+
+
+
+	}
+
+
+
 

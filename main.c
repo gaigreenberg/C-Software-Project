@@ -14,26 +14,21 @@
 #include <time.h>
 
 #define allocateDivision (division*)calloc(1,sizeof(division))
-#define problem 1
-#define OK 0
 
 
 /*error detect */
-int readErrOccurred(int actual, int expected, int errorNum){
-	if(actual != expected){
-		printf("error in loadMatrix #%d",errorNum);
-		return problem;
+void readErrCheck(int actual, int expected, int errorNum){
+	if(actual != (expected)){
+		printf("error in loadMatrix #%d \t",errorNum);
+		printf("actual = %d, expected =%d \n ", actual, expected);
+		exit(EXIT_FAILURE);
 	}
-	return 0;
 }
 
-int loadFailed(int readRes){
-	if(readRes != OK){
-		printf("failed loading Matrix A!");
-		return problem;
+void checkArgc(int argc){
+	if (argc != 3){
+		exit(EXIT_FAILURE);
 	}
-	return OK;
-
 }
 
 /*claculate M of matrix A when M is the sum of vertices degrees */
@@ -48,61 +43,47 @@ int calculateM(spmat* A ,int n ){
 
 /* update row according to mask */
 void updateRow(double* row, int n, int* mask, int k){
-	int i, neighbor, j=0;
+	int i, nbr;
 
-	if (k == 0){
-		for (i=0; i<n; i++){
-			row[i]=0;
-		}
-		return;
-	}
-	neighbor = mask[0];
 	for (i=0; i<n; i++){
-		if (i==neighbor && j<k){
-			row[i] = 1;
-			j++;
-			neighbor = mask[j];
-
-		}else{
-
-		row[i]=0;
-		}
+		row[i]=0.0;
+	}
+	if(k>n){printf("Fatal Readinf Error"); exit(EXIT_FAILURE);}
+	for (i=0; i<k; i++){
+		nbr = mask[i];
+		row[nbr] = 1.0;
 	}
 }
 
 /* read input and store in matrix, after allocation
  * closes input file*/
-int loadMatrix(FILE* input, spmat* matrix, int n){
-	int i,r,k;
-	int *mask;
-	double *row;
+void loadMatrix(FILE* input, spmat* matrix, int n){
+
+	int i, r, k, *mask = (int*)calloc(n,sizeof(int));
 
 	rewind(input);
-	r = fread(&n, 1, sizeof(int), input);
-	if(readErrOccurred(r,1,1)){return problem;}		/*errror 1*/
+	r = fread(&n, sizeof(int), 1, input);
+	/*printf("|V| = %d\n",n);*/
+	(readErrCheck(r,1,1));		/*errror 1*/
 
-	row =  (double*)calloc(n, sizeof(int));
-	mask = (int*)calloc(n, sizeof(int));
 	for (i=0; i<n; i++){
-		r = fread(&k, 1 ,sizeof(int) , input);
-		if(readErrOccurred(r,1,2)){return problem;} /*error 2*/
+		r = fread(&k, sizeof(int), 1, input); /*read Ki*/
+		readErrCheck(r, 1, 2); /*error 2*/
+		(matrix->Kvec)[i]=k;
 
-		matrix->Kvec[i]=k;
-		r = fread(&mask, n , sizeof(int), input);
-		if(readErrOccurred(r,n,3)){return problem;} /*error 3*/
+		if(k>0){
+			r = fread(mask, sizeof(int), k, input);
+			readErrCheck(r, k, 3); /*error 3*/
 
-		updateRow(row,n,mask,k);
-		AddRow(matrix , row, i);
+			AddRow2(matrix , mask, k, i);
+		}
 	}
-	free(row);
 	free(mask);
-	fclose(input);
-	return OK;
 
 }
 
 /* write partiton with maximized modularity*/
-void wrtieDivision(FILE* output, division* div){
+void writeDivision(FILE* output, division* div){
 	int j, k, n=div->size;
 	int* members;
 	groupCell *current = div->groups, *prev;
@@ -181,46 +162,106 @@ void Alogrithem3(spmat* B, int n, division* O, division* P){
 	}
 }
 
+
+
+/*side functions for tests */
+
+/*prints output file*/
+void printDivisiobFile(char *argv2){
+	FILE* out = fopen(argv2,"r");
+	int n, j, i, d, *indices;
+	fread(&n, sizeof(int), 1, out);
+	indices = (int*)calloc(n,sizeof(int));
+	printf("there are %d groups in the division:",n);
+	for(j=0; j<n;j++){
+		fread(&d,sizeof(int),1,out);
+		fread(indices,sizeof(int),d,out);
+		printf("\ngroup #%d has %d nodes:\n\t ",j+1,d);
+		for(i=0; i<d; i++){
+			printf("%d,",indices[i]);
+		}
+	}
+
+
+}
+
+/*prints input file*/
+void printGraph(FILE* input, int n){
+	int i,k,j, *mask = (int*)calloc(n,sizeof(int));
+
+	rewind(input);
+	fread(&n, sizeof(int), 1, input);
+	printf("|V| = %d",n);
+
+	for (i=0; i<n; i++){
+		fread(&k, sizeof(int), 1, input); /*read Ki*/
+		printf("\n\t  K%d = %d ->\t", i, k);
+		fread(mask, sizeof(int), k, input);
+		if(k>0){
+			for(j=0;j<k;j++){
+				printf("%d,",mask[j]);
+			}
+		}
+	}
+	free(mask);
+}
+
+
 /* argv[1] = input || argv[2] = output */
 int main(int argc, char* argv[]) {
-	FILE *inMatrix, *bestDivisiob;
+	FILE *inMatrix, *outputDiv;
 	spmat *A, *B;
-	division *O = allocateDivision, *P = allocateDivision;
-	int n,M,r;
+	division *O = allocateDivision, *P = allocateDivision, *test=allocateDivision;
+	int n, M;
 
-	if(argc != 3){
-		printf("invalid number of arguments!");
-		return(1);
-	}
+	(checkArgc(argc));
+
 	inMatrix  = fopen(argv[1],"r");
-	bestDivisiob = fopen(argv[2],"w");
+	outputDiv = fopen(argv[2],"w");
 
 	/*read input matrix to sparse and store as Sparse Matrix */
 	fread(&n, 1 ,sizeof(int), inMatrix);
+	printf("n=%d \n\n",n);
 	A = allocateMatrix(n);
-	r = loadMatrix(inMatrix, A, n);
-	if (loadFailed(r)) {return problem;}
-	fclose(inMatrix);
-	free(inMatrix);
+
+	loadMatrix(inMatrix,A,n);
+	printf("\n\t ~~ loading Graph Complete ~~\n");
+
 
 	/* pre calculations */
 	B  = allocateMatrix(n);
 	M  = calculateM(A,n);
-	createB(A,M,B);
-	free(A);
+	printf("M calculated:%d\n",M);
+
+	/*createB(A,M,B);*/
+
 
 	/* main calculation and outputting*/
 	setEmptyDivision(O);
 	setTrivialDivision(P,n);
+	printf("trivial & empty divisions created");
+	if(1){
+
+		/*test division writing*/
+		madeUpDivision(test);
+		writeDivision(outputDiv, test);
+		/*fclose(outputDiv);*/
+		printDivisiobFile(argv[2]);
+		exit(EXIT_SUCCESS);
+	}
+
+	/*works untill here! without B-part*/
 	Alogrithem3(B, n, O, P);
-	wrtieDivision(bestDivisiob,O);
+	writeDivision(outputDiv,O);
 
 	/*free memory and finish program */
-
-	free(bestDivisiob);
+	fclose(outputDiv);
+	free(inMatrix);
+	free(outputDiv);
 	freeDivision(O);
 	freeDivision(P);
 	freeMatrix(B);
+	freeMatrix(A);
 	return 0;
 }
 

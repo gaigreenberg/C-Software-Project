@@ -40,6 +40,10 @@ void freeMatrix(struct _spmat *A);
  * exactly n times in order (i = 0 to n-1) */
 void AddRow (struct _spmat *A, const double *row, int i);
 
+void AddRow2(struct _spmat *A, const int *newRow, int k, int i);
+
+void printMatrix(spmat* A);
+
 /*recieves a list and copy iy to A[i]*/
 void insertRow(spmat* A , list inList, int i);
 

@@ -120,6 +120,38 @@ void AddRow(struct _spmat *A, const double *row, int i){
 	}
 }
 
+void AddRow2(struct _spmat *A, const int *newRow, int k, int i){
+	int j=0 , firstElement=1;
+	list current,newCell;
+
+	((list*)A->private)[i] = NULL;
+	current = (list)calloc(1,sizeof(cell));
+
+	for (;j<k;++j){
+
+			newCell = (list)calloc(1,sizeof(cell));
+			if (newCell == NULL || current == NULL){
+				freeMatrix(A);
+				}
+			makeCell(newCell, newRow[j], 1.0);
+			assert(newCell->nextCell == NULL);
+			if(firstElement){
+				current = newCell;
+				((list*)A->private)[i] = current;
+				firstElement = 0;
+				assert(((list*)A->private)[i]->nextCell == NULL);
+			}
+			else{
+			current->nextCell = newCell;
+			assert(newCell->nextCell == NULL);
+			current = current->nextCell;
+			current->nextCell=NULL;
+			}
+		}
+
+}
+
+
 void insertRow(spmat* A , list inList, int i){
 	list copy = CopyList(inList);
 	A->private[i] = copy;
@@ -203,4 +235,21 @@ void multMatrixByIntVec(const struct _spmat *A, const int *v, double *result){
 	 return matrix;
  }
 
+
+ void printMatrix(spmat* A){
+	int j;
+	list curr;
+	printf("n = %d",A->n);
+	for(j=0; j<A->n; j++){
+		printf("\n\t  K%d = %d ->\t", j, A->Kvec[j]);
+		curr = A->private[j];
+		while(curr != NULL){
+			printf("%d,",curr->col);
+			curr = curr->nextCell;
+		}
+
+
+	}
+
+ }
 

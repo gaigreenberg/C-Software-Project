@@ -55,5 +55,7 @@
 
 	void freeGroupCell(groupCell* cell);
 
+	void madeUpDivision(division* div);
+
 
 #endif /* DIVISION_H_ */
