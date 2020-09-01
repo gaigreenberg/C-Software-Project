@@ -4,7 +4,7 @@
 
 #include "Bmat.h"
 
- /* creating spmat B from A */
+ /* creating spmat B from A ----- old method----
  void createB(spmat *A ,int m , struct _spmat *B){
 	 list  current;
 	 double* rowB;
@@ -14,26 +14,26 @@
 		j=0;
 		rowB = (double*) calloc(A->Kvec[i], sizeof(double));
 		current = ((list*)(A->private))[i];
-		while(current != NULL){	/* running over A[i]*/
+		while(current != NULL){	/* running over A[i]
 			 column=current->col;
 			 for (; j < A->Kvec[i]; ++j) {
 				 if(column==j){
-					 rowB[j]=(current->value-((A->Kvec[i])*(A->Kvec[j]/m)));	/*current->value==1 allways */
+					 rowB[j]=(current->value-((A->Kvec[i])*(A->Kvec[j]/m)));	/*current->value==1 allways
 					 current=current->nextCell;
 				 }else{
 					 rowB[j]=-((A->Kvec[i])*(A->Kvec[j]/m));
 				 }
 			 }
 		 }
-		 for (; j < A->Kvec[i]; ++j) {/* adding rest of the object if relevant*/
+		 for (; j < A->Kvec[i]; ++j) {/* adding rest of the object if relevant
 			 rowB[j]=((A->Kvec[i])*(A->Kvec[j]/m));
 		 }
 		 AddRow(B,rowB,i);
 		 free(rowB);
 	 }
- }
+ } */
 
-/* create B[g] by given B and group g of vertexes from V */
+/* create B[g] by given B and group g of vertexes from V  ----OLD METHOD-----
  void createBg(spmat *B,int *g,struct _spmat *Bg){
 	 int i;
 	 list newlist;
@@ -47,44 +47,73 @@
 			Bg->private[i] =newlist;
 		}
 	}
- }
+ }	*/
+
+ /* creating spmat B from A */
+  void createBg(spmat *A ,int m ,int *g, struct _spmat *Bg){
+ 	 list  current;
+ 	 double* rowB;
+ 	 int i, j=0, column;
+ 	 Bg->n = A->n;
+ 	 for (i = 0; i <A-> n; ++i) {
+ 		if(g[i] == 0){Bg->private[i]= NULL;} /* i not in g -> wont be in Bg */
+ 		else {	/* i in g - just kike making B */
+			j=0;
+			rowB = (double*) calloc(A->Kvec[i], sizeof(double));
+			current = ((list*)(A->private))[i];
+			while(current != NULL){	/* running over A[i]*/
+				 column=current->col;
+				 for (; j < A->Kvec[i]; ++j) {
+					 if(column==j){
+						 rowB[j]=(current->value-((A->Kvec[i])*(A->Kvec[j]/m)));	/*current->value==1 allways */
+						 current=current->nextCell;
+					 }else{
+						 rowB[j]=-((A->Kvec[i])*(A->Kvec[j]/m));
+					 }
+				 }
+			 }
+			 for (; j < A->Kvec[i]; ++j) {/* adding rest of the object if relevant*/
+				 rowB[j]=((A->Kvec[i])*(A->Kvec[j]/m));
+			 }
+			 AddRow(Bg,rowB,i);
+			 free(rowB);
+ 		}
+ 	 }
+  }
 
 /* B^[g] */
 
- double RowSum(list inList){
-	 double sum = 0;
-	 while (inList != NULL){
-		 sum += inList->value;
-		 inList = inList->nextCell;
+ void colSum(spmat* Bg,double* sum){
+	 int i;
+	 list current;
+	 for(i=0 ; i<Bg->n;++i){
+		 current=Bg->private[i];
+		 while(current!=NULL){
+			 sum[current->col]+=current->value;
+			 current=current->nextCell;
+		 }
 	 }
-	 return sum;
  }
 
+ /* given Bg , updating it to be B[g] hat */
  void createBgHat(spmat* Bg){
 	 int i , n=Bg->n;
-	 double sum=0;
-	 list current, next, newCell;
+	 double *sum;
+	 sum = (double*)calloc(n,sizeof(double));
+	 list current;
+	 colSum(Bg,sum);
 	 for(i=0 ; i<n ; i++){
-		 sum = RowSum(Bg->private[i]);
-
-		 if(Bg->private[i] != NULL){ /*empty row <-> sum=0 )*/
+		 if(Bg->private[i] != NULL){ /*empty row <-> sum=0  )*/
 			current = Bg->private[i];
-			next = current->nextCell;
 
-			while(next != NULL && next->col <= i){
-				current = next;
-				next = next->nextCell;
+			while(current != NULL && current->col < i){
+				current = current->nextCell;
 			}
-			if (current->col /= i){ /* Bg[i][i] = 0 */
-				newCell=calloc(1,sizeof(cell));
-				makeCell(newCell, i ,-sum);
-				current->nextCell = newCell;
-				newCell->nextCell = next;
-
-			}else if(current->col == i) { /*Bg[i][i] /= 0 */
-				current->value -= sum;
-			}
+			if (current->col == i){ /* Bg[i][i] != 0  exist*/
+				current->value=current->value-sum[i];
 		 }
+	 }
+	 free(sum);
 	 }
  }
 
@@ -185,6 +214,7 @@ double eigenVal(double *v,struct _spmat *C,double norm){
 	 }
 	 return sum;
  }
+
 
 /* calculate Q: by definition */
 double calculateDeltaQ(int* s, spmat* B){

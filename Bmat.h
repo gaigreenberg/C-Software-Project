@@ -17,11 +17,11 @@
 #include "spmat.h"
 #include "pIter.h"
 
- /* creating spmat B from A */
- void createB(spmat *A ,int m , spmat *B);
+ /* creating spmat B from A ----OLD METHOD
+ void createB(spmat *A ,int m , spmat *B); */
 
 /* create B[g] by given B and group g of vertexes from V */
- void createBg(spmat *B, int *g, spmat *Bg);
+ void createBg(spmat *A ,int m ,int *g, struct _spmat *Bg);
 
 /* B^[g] */
 
