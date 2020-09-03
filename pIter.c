@@ -6,7 +6,7 @@
  *      this is a copy of relevent funtions of hw2
  */
 
-#define epsilon 0.00001
+#define epsilon 0.000001
 #include "pIter.h"
 #include <math.h>
 
@@ -84,18 +84,20 @@ void powerIteration(spmat* C,double* vec,int n ){
 	nextVec = (double*)calloc(n,sizeof(double));
 	generateRandomVec(vec,n);
 	do{
+		iter++;
 		multMatrix(C,vec,nextVec);
-		printf("power iteration took %d iters",iter);
 		mag = vectorMag(nextVec,n);
 		divideVecByMag(nextVec,mag,n);
-		if(epsilonCheck(vec,nextVec,n)==0){
-						vec = nextVec;
-					}else{
-						bool=1;
-					}
 
-				}
-				while (bool==0);
+		if(epsilonCheck(vec,nextVec,n)==0){
+			vec = nextVec;
+		}else{
+			bool=1;
+		}
+
+	}while (bool==0);
+	printf("power iteration took %d iters",iter);
+
 	free(nextVec);
 	}
 

@@ -21,18 +21,21 @@
  void createB(spmat *A ,int m , spmat *B); */
 
 /* create B[g] by given B and group g of vertexes from V */
- void createBg(spmat *A ,int m ,int *g, struct _spmat *Bg);
+ void createBg(spmat *A ,double m ,int *g, struct _spmat *Bg, double* colSum);
 
 /* B^[g] */
 
  double RowSum(list inList);
 
- void createBgHat(spmat* Bg);
+ void createBgHat(spmat* Bg,double* colSum);
 
  void shiftC(double norm, spmat* C);
 
 	 /* calculating the norm-1 of spmat C */
  double norm1(struct _spmat *C);
+
+ double findNorm(double* colSum, int n);
+
 
  /* calculate multiply by 2 vectors */
  double multVec(double *v1 , double *v2, int n1, int n2);
@@ -47,7 +50,7 @@ double eigenVal(double *v, spmat *C,double norm);
 double calculateDeltaQ(int* s, spmat* B);
 
 /* calculate eigen pair: return eigan val and store vector in vec*/
-double calculateEigenPair(double* vec, spmat* BgHat, int n);
+double calculateEigenPair(double* vec, spmat* BgHat, int n, double* colSum);
 
 /* initial array values to -1 */
 void indicesStart(int* indices,int n);
@@ -57,4 +60,7 @@ int unmovedStart(int* unmoved,int n,int* s);
 
 /* function for modularity maximization - algorithem 4 */
 void modularityMaximization(spmat* BgHat , int* s);
+
+void forceStop(const char* func, const int line);
+
 #endif /* BMAT_H_ */
