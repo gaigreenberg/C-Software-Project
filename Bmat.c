@@ -3,7 +3,7 @@
  */
 
 #include "Bmat.h"
-
+#include "math.h"
  /* creating spmat B from A ----- old method----
  void createB(spmat *A ,int m , struct _spmat *B){
 	 list  current;
@@ -14,26 +14,26 @@
 		j=0;
 		rowB = (double*) calloc(A->Kvec[i], sizeof(double));
 		current = ((list*)(A->private))[i];
-		while(current != NULL){	/* running over A[i]
+		while(current != NULL){	 running over A[i]
 			 column=current->col;
 			 for (; j < A->Kvec[i]; ++j) {
 				 if(column==j){
-					 rowB[j]=(current->value-((A->Kvec[i])*(A->Kvec[j]/m)));	/*current->value==1 allways
+					 rowB[j]=(current->value-((A->Kvec[i])*(A->Kvec[j]/m)));	current->value==1 allways
 					 current=current->nextCell;
 				 }else{
 					 rowB[j]=-((A->Kvec[i])*(A->Kvec[j]/m));
 				 }
 			 }
 		 }
-		 for (; j < A->Kvec[i]; ++j) {/* adding rest of the object if relevant
+		 for (; j < A->Kvec[i]; ++j) { adding rest of the object if relevant
 			 rowB[j]=((A->Kvec[i])*(A->Kvec[j]/m));
 		 }
 		 AddRow(B,rowB,i);
 		 free(rowB);
 	 }
- } */
+ }
 
-/* create B[g] by given B and group g of vertexes from V  ----OLD METHOD-----
+	create B[g] by given B and group g of vertexes from V  ----OLD METHOD-----
  void createBg(spmat *B,int *g,struct _spmat *Bg){
 	 int i;
 	 list newlist;
@@ -49,60 +49,107 @@
 	}
  }	*/
 
+void printGmembers(int* g, int n){
+	int j;
+	printf("G = {");
+	for (j=0 ; j<n ; j++){
+		if (g[j]==1) printf(" %d ", j);
+	}
+	printf("}\n");
+}
+
+void printRowB(double* rowB, int n, int i){
+	int j;
+	printf("row %d = {",i);
+	for (j=0 ; j<n ; j++){
+		printf(" %f ", rowB[j]);
+	}
+	printf("}\n");
+}
+
+/*set row[j] = -kikj when {i=row, j=col}
+ * returns the degree of Vi in BG*/
+int minusKiKj(double* row, int* k, int n, int i, double M,int* g){
+	int j, deg=0;
+	double KiKj;
+
+	for(j=0;j<n;j++){
+		KiKj = (double)k[i]*k[j]*g[i];
+		if(KiKj != 0){
+			deg++;
+		}
+		row[j] = -KiKj/M;
+	}
+
+	return deg;
+
+}
+
+
  /* creating spmat B from A */
-  void createBg(spmat *A ,int m ,int *g, struct _spmat *Bg){
+ void createBg(spmat *A ,double m ,int *g, struct _spmat *Bg, double* colSum){
  	 list  current;
- 	 double* rowB;
- 	 int i, j=0, column;
+ 	 double* rowB = calloc(A->n, sizeof(double));
+ 	 int i, j, Ki;
  	 Bg->n = A->n;
- 	 for (i = 0; i <A-> n; ++i) {
- 		if(g[i] == 0){Bg->private[i]= NULL;} /* i not in g -> wont be in Bg */
- 		else {	/* i in g - just kike making B */
-			j=0;
-			rowB = (double*) calloc(A->Kvec[i], sizeof(double));
-			current = ((list*)(A->private))[i];
-			while(current != NULL){	/* running over A[i]*/
-				 column=current->col;
-				 for (; j < A->Kvec[i]; ++j) {
-					 if(column==j){
-						 rowB[j]=(current->value-((A->Kvec[i])*(A->Kvec[j]/m)));	/*current->value==1 allways */
-						 current=current->nextCell;
-					 }else{
-						 rowB[j]=-((A->Kvec[i])*(A->Kvec[j]/m));
-					 }
-				 }
+ 	 printGmembers(g,A->n);
+ 	 printf("\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
+ 	 printf("Bg:\n");
+ 	 for (i = 0; i <A-> n; ++i) { /*for each row*/
+ 		 if(g[i] == 1){
+			 Ki = minusKiKj(rowB, A->Kvec, A->n, i, m, g); /*rowB[j] = -(KiKj)/M */
+			 current = A->private[i];
+			 while (current != NULL){
+					 j = current->col;
+					 rowB[j] += current->value;
+					 colSum[j] += current->value;
+					 current = current->nextCell;
 			 }
-			 for (; j < A->Kvec[i]; ++j) {/* adding rest of the object if relevant*/
-				 rowB[j]=((A->Kvec[i])*(A->Kvec[j]/m));
-			 }
+			 /*printRowB(rowB,A->n,i);*/
 			 AddRow(Bg,rowB,i);
-			 free(rowB);
- 		}
+			 Bg->Kvec[i] = Ki;
+ 		 }else{
+ 			if(Bg->private[i] != NULL){
+ 				free(Bg->private[i]);
+ 			}
+ 			Bg->private[i] = NULL;
+ 		 }
+
  	 }
-  }
+	 /*free(rowB);
+ 	 printMatrix(Bg);*/
+
+}
 
 /* B^[g] */
 
  void colSum(spmat* Bg,double* sum){
-	 int i;
+	 int i, col, n=Bg->n;
+	 double addition;
 	 list current;
-	 for(i=0 ; i<Bg->n;++i){
-		 current=Bg->private[i];
-		 while(current!=NULL){
-			 sum[current->col]+=current->value;
-			 current=current->nextCell;
+
+	 for(i=0 ; i<n; i++){
+		 current = Bg->private[i];
+		 while(current != NULL){
+			 addition = current->value;
+			 col = current -> col;
+			 sum[col] += addition;
+			 current = current->nextCell;
 		 }
 	 }
  }
 
  /* given Bg , updating it to be B[g] hat */
- void createBgHat(spmat* Bg){
+ void createBgHat(spmat* Bg, double* sum){
 	 int i , n=Bg->n;
-	 double *sum;
-	 sum = (double*)calloc(n,sizeof(double));
+	 double* normFactor = calloc(n,sizeof(double));
 	 list current;
-	 colSum(Bg,sum);
+
+	 printf("Bg^: \n\t\t");
+
+
 	 for(i=0 ; i<n ; i++){
+		 printf("%d, ", i);
 		 if(Bg->private[i] != NULL){ /*empty row <-> sum=0  )*/
 			current = Bg->private[i];
 
@@ -110,32 +157,47 @@
 				current = current->nextCell;
 			}
 			if (current->col == i){ /* Bg[i][i] != 0  exist*/
-				current->value=current->value-sum[i];
+				current->value = (current->value - sum[i]);
+				normFactor[i] -= sum[i];
+			}
 		 }
 	 }
-	 free(sum);
+	 for(i=0 ; i<n ; i++){
+		 sum[i] += normFactor[i];
 	 }
+	 printf("\n");
+
+	/* free(normFactor);*/
+
  }
 
  void shiftC(double norm, spmat* C){
 	 int i, n =C->n;
 	 list current, next, newCell;
+ 	 printf("\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
+	 printf("C:\n");
+	 /*printMatrix(C);
+	 forceStop(__FUNCTION__, __LINE__);*/
 
 	 for (i=0 ; i<n ;i++){
 		 if(C->private[i] == NULL){
 			 newCell = calloc(1,sizeof(cell));
 			 makeCell(newCell, i, norm);
 			 C->private[i] = newCell;
+
 		 }else {
 			 current = C->private[i];
 			 next = current->nextCell;
 
+
 			 while(next != NULL && next->col <= i){
-			 	current = next;
+			 	current = current->nextCell;
 			 	next = next->nextCell;
+
 			 }
 
-			 if (current->col /= i){ /* Bg[i][i] = 0 */
+
+			 if (current->col != i){ /* Bg[i][i] = 0 */
 			 				newCell=calloc(1,sizeof(cell));
 			 				makeCell(newCell, i ,norm);
 			 				current->nextCell = newCell;
@@ -146,6 +208,7 @@
 			 			}
 
 		 }
+
 	 }
  }
 	 
@@ -156,13 +219,15 @@
 	 double* colls = (double*)calloc(n,sizeof(double));
 	 list current;
 
-	 for (i = 0; i < n; ++i) {
-		 current=((list*)(C->private))[i];
-		while(current!=NULL){
-			colls[current->col]+=abs(current->value);
-			current=current->nextCell;
+	for (i = 0; i < n; ++i) {
+		current = C->private[i];
+		while(current != NULL){
+			colls[current->col] += abs(current->value);
+			current = current->nextCell;
 		}
 	}
+	 forceStop(__FUNCTION__, __LINE__);
+
 	 for (i = 0; i < n; ++i) {
 		 if(colls[i]>max){
 			 max = colls[i];
@@ -171,6 +236,18 @@
 	 free(colls);
 	 return max;
  }
+
+ double findNorm(double* colSum, int n){
+	 int j;
+	 double max = colSum[0];
+	 for(j=1; j<n ; j++){
+		 if(colSum[j] > max) max=colSum[j];
+	 }
+	 return max;
+
+
+ }
+
 
  /* calculate multiply by 2 vectors */
  double multVec(double *v1 , double *v2, int n1, int n2){
@@ -227,12 +304,15 @@ double calculateDeltaQ(int* s, spmat* B){
 }
 
 /* calculate eigen pair: return eigan val and store vector in vec*/
-double calculateEigenPair(double* vec, spmat* BgHat, int n){
+double calculateEigenPair(double* vec, spmat* BgHat, int n, double* colSum){
 	double norm,value;
-	norm = norm1(BgHat);
+
+	norm = findNorm(colSum,n);
 	shiftC(norm,BgHat);
 	powerIteration(BgHat, vec, n );
 	value = eigenVal(vec,BgHat,norm);
+	printf("eigan Value =%f",value);
+
 	return value;
 }
 
