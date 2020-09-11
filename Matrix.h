@@ -1,6 +1,7 @@
 #ifndef _Matrix_H
 #define _Matrix_H
 
+#include "CheckingAlgorithems.h"
 
 
 typedef struct cell{
@@ -57,18 +58,13 @@ void createNmatrix(Matrix *matrix);
 
 double getNij(Matrix* matrix, int i, int j);
 
-/* row modification of A */
-void addRowOldFormat (Matrix *matrix, const double *row, int i);
 
-void addRowNewFormat(Matrix *matrix, const int *newRow, int k, int i);
+void AddRow(Matrix *matrix, const int *newRow, int k, int i);
 
-void insertRow(Matrix *matrix , list inList, int i);
-
+void combineVectors(int n, double* v1, double* v2, double *v3, double* result);
 
 
 /*multiply matrix and double vector*/
-
-void combineVectors(int n, double* v1, double* v2, double *v3, double* result);
 
 void multSparseMatrix(const Matrix *matrix, const double *vector, double *result);
 

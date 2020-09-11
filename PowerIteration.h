@@ -10,11 +10,7 @@
 #define POWERITERATION_H_
 #include "Matrix.h"
 #include "Modularity.h"
-
-
-void printVector(double* vector, int n,int num);
-
-void printIntVector(int* vector, int n,int num);
+#include "CheckingAlgorithems.h"
 
 
 void generateRandomVec(double* vector, int size);

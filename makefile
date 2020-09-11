@@ -1,8 +1,8 @@
 FLAGS 	= -ansi -Wall -Wextra -Werror -pedantic-errors
 LIBS 	= -lm
-SOURCE	= main.c Matrix.c PowerIteration.c division.c Modularity.c
-OBJECTS	= main.o Matrix.o PowerIteration.o division.o Modularity.o
-HEADER	= Matrix.h PowerIterartion.h division.h Modularity.h
+SOURCE	= main.c Matrix.c PowerIteration.c Division.c Modularity.c CheckingAlgorithems.c
+OBJECTS	= main.o Matrix.o PowerIteration.o Division.o Modularity.o CheckingAlgorithems.o
+HEADER	= Matrix.h PowerIterartion.h Division.h Modularity.h CheckingAlgorithems.h
 
 all: $(OBJECTS)
 	gcc $(OBJECTS) -o cluster $(LIBS)
@@ -26,7 +26,8 @@ division.o: division.c
 Modularity.o: Modularity.c
 	gcc $(FLAGS) -c Modularity.c
 
-
+CheckingAlgorithems.o : CheckingAlgorithems.c
+	gcc $(FLAGS) -c CheckingAlgorithems.c
 
 
 

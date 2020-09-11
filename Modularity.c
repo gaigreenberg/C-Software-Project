@@ -5,7 +5,7 @@
 #include "Modularity.h"
 #include "math.h"
 
-void printVector(double* vector, int n,int num);
+
 
 void printGmembers(int* g, int n){
 	int j;
@@ -59,7 +59,7 @@ void calculateNorm1(Matrix *matrix){
 			 max = colls[i];
 		 }
 	 }
-	 printVector(colls, n, 0);
+	 printVector(colls, n, "matrix columns");
 	 free(colls);
 	 matrix->norm = max;
  }
@@ -128,6 +128,87 @@ double calculateEigenPair(Matrix* BgHat, double* vec, int n){
 
 	return value;
 }
+
+
+
+/* main calculation of modularity */
+
+/*B should be created before, Bg,subDivision should be allocated before*/
+int Alogrithem2(Matrix* matrix, int* subDiv, int* g, int n, int* a, int* b){
+	double value, *vec, Q;
+	int j;
+
+	matrix -> filter = g;
+
+	*a=0 ; *b=0;
+	vec = (double*)calloc(n, sizeof(double));
+
+	/*createBg(matrix,g,Bg,colSum);
+	createBgHat(Bg, colSum);
+	 */
+	value = calculateEigenPair(matrix, vec, n);
+
+	if (value <=0){
+		return 0;
+	}
+	printf("in Alg2: ");
+	printVector(vec,n,"eV");
+	for(j=0; j<n ; j++){
+		if(vec[j]<0){
+			subDiv[j] = -1;
+
+			++(*a);
+		}else if(vec[j] > 0){
+			subDiv[j] = 1;
+			++(*b);
+		}
+
+	}
+	Q = calculateDeltaQ(subDiv, matrix);
+	if(Q < 0){
+		return 0;
+	}
+
+	free(vec);
+	return 1;
+}
+
+/*B should be created before, divisions O&P should be created before before*/
+void Alogrithem3(Matrix* matrix, int n, division* O, division* P){
+	groupCell *A = cg, *B=cg;
+	int *g = (int*)calloc(n, sizeof(int)), *subDiv = (int*)calloc(n,sizeof(int));
+
+	int a=0 ,b=0, divideable , breaker=0;
+
+	/*printf("\nA3: Entering loop:\n");*/
+
+	while (P->DivisionSize > 0){
+		removeG(P, g); /* what to doo?? */;
+		divideable = Alogrithem2(matrix, subDiv,g,n,&a,&b );
+		printf("after Alg2: ");
+		printIntVector(subDiv,n,"eigenVector");
+		if(divideable){
+			breaker++;
+			printf("dividavle\t");
+			subDividedBySubdiviosion(A,B, subDiv,n, a, b);
+
+			printGroups(A,B);
+			printf("\n");
+			reOrder(P,O,A,B);
+			if(breaker == 25){
+				printf("Algorithem 3 got stuck in LOOP");
+				forceStop(__FUNCTION__, __LINE__);
+			}
+		}
+		else{
+			printf("\n->reached un-dividavle");
+
+			CreateGroupCell(A, n, g);
+			add(O,A);
+		}
+	}
+}
+
 
 
 /*Algorithem 4*/

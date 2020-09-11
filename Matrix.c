@@ -87,8 +87,6 @@ list CopyListFiltered(list old, int* filter){
 	return newList;
 }
 
-/*new method's functions */
-
 
 /* Allocates a new linked-lists sparse matrix of size n */
 Matrix* allocateMatrix(int n){
@@ -139,49 +137,12 @@ void createNmatrix(Matrix* matrix){
 	}
 }
 
-/* row modification of A */
-
-/* add row i to matrix A
- * row is represnted as n size (double) vector
- * if row[j] == 0 it doesn't add to matrix
- * */
-void addRowOldFormat(Matrix *matrix, const double *row, int i){
-	int j=0 , firstElement=1 , n=matrix->n;
-	list current,newCell;
-
-	((list*)matrix->A)[i] = NULL;
-	current = (list)calloc(1,sizeof(cell));
-
-	for (;j<n;++j){
-		if(row[j] != 0.0){
-
-			newCell = (list)calloc(1,sizeof(cell));
-			if (newCell == NULL || current == NULL){
-				freeMatrix(matrix);
-				}
-			makeCell(newCell,j,row[j]);
-			assert(newCell->nextCell == NULL);
-			if(firstElement){
-				current = newCell;
-				((list*)matrix->A)[i] = current;
-				firstElement = 0;
-				assert(((list*)matrix->A)[i]->nextCell == NULL);
-			}
-			else{
-			current->nextCell = newCell;
-			assert(newCell->nextCell == NULL);
-			current = current->nextCell;
-			current->nextCell=NULL;
-			}
-		}
-	}
-}
 
 /* add row i to matrix A
  * row is represented as k size (int) array of Vi neighbors
  * for each neighbor the value is 1
  */
-void addRowNewFormat(Matrix *matrix, const int *newRow, int k, int i){
+void AddRow(Matrix *matrix, const int *newRow, int k, int i){
 	int j=0 , firstElement=1;
 	list current,newCell;
 
@@ -212,13 +173,6 @@ void addRowNewFormat(Matrix *matrix, const int *newRow, int k, int i){
 
 }
 
-void insertRow(Matrix* matrix , list inList, int i){
-	list copy = CopyList(inList);
-	matrix->A[i] = copy;
-}
-
-/*multiply matrix and double vector*/
-
 /*result = V1 -V2 +v3 */
 void combineVectors(int n, double* v1, double* v2, double *v3, double* result){
 	int j;
@@ -226,6 +180,9 @@ void combineVectors(int n, double* v1, double* v2, double *v3, double* result){
 		result[j] = v1[j]-v2[j]+v3[j];
 	}
 }
+
+
+/*multiply matrix and double vector*/
 
 void multSparseMatrix(const Matrix *matrix, const double *vector, double *result){
 	 int j, n=matrix->n, col;

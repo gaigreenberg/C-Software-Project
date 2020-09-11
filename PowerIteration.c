@@ -11,25 +11,6 @@
 #include "Matrix.h"
 #include <math.h>
 
-void printVector(double* vector, int n,int num){
-	int j;
-	printf("V%d=\n{", num);
-	for(j=0; j<n ; j++){
-			printf("%.2f", vector[j]);
-			if(j<(n-1)) printf(", ");
-	}
-	printf("}\n");
-}
-void printIntVector(int* vector, int n,int num){
-	int j;
-	printf("V%d=\n{", num);
-	for(j=0; j<n ; j++){
-			printf("%d", vector[j]);
-			if(j<(n-1)) printf(", ");
-	}
-	printf("}\n");
-}
-
 /*
  * generates a randmoized (double) vector of size n
  */

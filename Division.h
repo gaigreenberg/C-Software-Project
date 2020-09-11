@@ -1,7 +1,7 @@
 /*
- * Division.h
+ * division.h
  *
- *  Created on: 25 √°√†√•√¢√ó 2020
+ *  Created on: 25 ·‡Â‚◊ 2020
  *      Author: omlad
  */
 
@@ -11,6 +11,11 @@
 	#include "stddef.h"
 	#include "stdlib.h"
 	#include <stdio.h>
+	#include "CheckingAlgorithems.h"
+
+
+	#define allocateDivision ((division*)calloc(1,sizeof(division)))
+	#define printGroups(A,B) {printf("\n");printGroup(A,"A");printf("\n");printGroup(B,"B");printf("\n");}
 
 	#define cn(n) ((int*)calloc(n,sizeof(int)))
 	#define cg ((groupList)calloc(1,sizeof(groupCell)))
@@ -55,7 +60,10 @@
 
 	void printGroup(groupCell *A, char* name);
 
+	/* for testing */
+
 	void madeUpDivision(division* div);
 
+	void printDivisionFile(char *outPutFile);
 
 #endif /* DIVISION_H_ */
