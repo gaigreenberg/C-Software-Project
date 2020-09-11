@@ -69,8 +69,7 @@ void normalizeVector(double *vec , double mag , int size ) {
 void powerIteration(Matrix* matrix,double* vec,int n ){
 	int iter = 0,keepRunning = 1;
 	double *nextVec, magnitude;
-	/*printMatrix(matrix);*/
-	/*printf("\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");*/
+
 	generateRandomVec(vec,n);
 	do{
 		nextVec = (double*)calloc(n,sizeof(double));

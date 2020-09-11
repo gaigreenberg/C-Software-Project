@@ -38,7 +38,7 @@ void printVector(double* vector, int n,char* name){
 	int j;
 	printf("%s=\n\t{", name);
 	for(j=0; j<n ; j++){
-			printf("%.2f", vector[j]);
+			printf("%.1f", vector[j]);
 			if(j<(n-1)) printf(", ");
 	}
 	printf("}\n");

@@ -64,6 +64,5 @@
 
 	void madeUpDivision(division* div);
 
-	void printDivisionFile(char *outPutFile);
 
 #endif /* DIVISION_H_ */

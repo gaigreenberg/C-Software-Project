@@ -12,7 +12,9 @@
 #include "Modularity.h"
 #include "CheckingAlgorithems.h"
 
-
+/*
+ * generates a randmoized (double) vector of size n
+ */
 void generateRandomVec(double* vector, int size);
 
 /* calculate a vector's magnitude */

@@ -220,8 +220,8 @@ void multNmatrix(const Matrix* matrix, const double *vector, double *result){
 				dotProduct += Nij*vector[j];
 				}
 			}
-			result[j] = dotProduct;
 		}
+		result[i] = dotProduct;
 	}
 
 }
@@ -247,9 +247,11 @@ void MultMatrix(const Matrix *matrix, const double *vector, double *result){
 	multUnitMatrix(matrix, vector, v3);
 
 	combineVectors(n, v1,v2,v3,result);
+
 	free(v1);free(v2);free(v3);
 
 }
+
 
 /*multiply matrix and int vector*/
 

@@ -45,7 +45,7 @@ void loadMatrix(FILE* input, Matrix* matrix, int n){
 	}
 
 	createNmatrix(matrix);
-	calculateNorm1(matrix);
+	calculateMatrixNorm(matrix);
 
 
 	free(mask);
@@ -89,6 +89,7 @@ int main(int argc, char* argv[]) {
 	matrix = allocateMatrix(n);
 
 	loadMatrix(inMatrix,matrix,n);
+
 	printf("\n\t ~~ loading Graph Complete ~~\n");
 
 

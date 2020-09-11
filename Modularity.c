@@ -6,29 +6,10 @@
 #include "math.h"
 
 
-
-void printGmembers(int* g, int n){
-	int j;
-	printf("G = {");
-	for (j=0 ; j<n ; j++){
-		if (g[j]==1) printf(" %d ", j);
-	}
-	printf("}\n");
-}
-
-void printRowB(double* rowB, int n, int i){
-	int j;
-	printf("row %d = {",i);
-	for (j=0 ; j<n ; j++){
-		printf(" %f ", rowB[j]);
-	}
-	printf("}\n");
-}
-
-	 /* calculating the norm-1 of spmat C */
-void calculateNorm1(Matrix *matrix){
+/* calculating the norm-1 of spmat C */
+void calculateMatrixNorm(Matrix *matrix){
 	 int i, j,nextCellIndex=-1, n = matrix->n;
-	 double max, ijValue;
+	 double max, value, Nij;
 	 double* colls = (double*)calloc(n,sizeof(double));
 	 list current;
 
@@ -39,10 +20,10 @@ void calculateNorm1(Matrix *matrix){
 		}
 
 		for(j=0; j<n ; j++){
-			ijValue = (matrix->kmFactor[j])*(matrix->K[i]);
-
+			value=0;
+			Nij = (matrix->kmFactor[i])*(matrix->K[j]);
 			if(j == nextCellIndex){
-				ijValue += 1;
+				value += 1;
 				current = current->nextCell;
 				if(current != NULL){
 					nextCellIndex= current->col;
@@ -50,7 +31,8 @@ void calculateNorm1(Matrix *matrix){
 					nextCellIndex=-1;
 				}
 			}
-			colls[j] += fabs(ijValue);
+			value -= Nij;
+			colls[j] += fabs(value);
 		}
 	}
 	max = colls[0];
@@ -60,11 +42,12 @@ void calculateNorm1(Matrix *matrix){
 		 }
 	 }
 	 printVector(colls, n, "matrix columns");
+	 printf("Norm1 = %f\n", max);
 	 free(colls);
 	 matrix->norm = max;
  }
 
- /* calculate multiply by 2 vectors */
+/* calculate multiply by 2 vectors */
 double multiplyVectors(double *v1 , double *v2, int n1, int n2){
 	 double sum = 0.0;
 	 int i;
@@ -79,22 +62,7 @@ double multiplyVectors(double *v1 , double *v2, int n1, int n2){
 	 return sum;
  }
 
-/* finding eigenValue for the founded eigenVector and normalize it with norm */
-double eigenVal(double *v, Matrix *C,double norm){
-	int n=C->n;
-	double value,denominator,numerator;
-	double *Av = (double*)calloc(n,sizeof(double));
-	MultMatrix(C,v,Av);
-	numerator   = multiplyVectors(v, Av, n, n);
-	denominator = multiplyVectors(v, v, n, n);
-	value = numerator/denominator;
-
-	value = value - norm;
-	free(Av);
-	return value;
-}
-
- /* calculate multiply by 2 vectors: one int , one double */
+/* calculate multiply by 2 vectors: one int , one double */
 double multVecIntDouble(int *Vint , double *Vdouble, int nInt , int nDouble){
 	 double sum = 0;
 	 int i=0;
@@ -107,28 +75,33 @@ double multVecIntDouble(int *Vint , double *Vdouble, int nInt , int nDouble){
 		 sum += ((double)Vint[i])*Vdouble[i];
 	 }
 	 return sum;
- }
+}
 
 /* calculate Q: by definition */
 double calculateDeltaQ(int* s, Matrix* matrix){
 	double result, *temp=(double*)calloc(matrix->n,sizeof(double));
-	multNmatrixInteger(matrix,s,temp);
+	MultMatrixInteger(matrix,s,temp);
 	result = multVecIntDouble(s,temp, matrix->n,matrix->n);
 	return (result*0.5);
 
 
 }
 
-/* calculate eigen pair: return eigan val and store vector in vec*/
-double calculateEigenPair(Matrix* BgHat, double* vec, int n){
-	double value;
+/* finding eigenValue for the founded eigenVector and normalize it with norm */
+double calculateEiganValue(Matrix *C, double *v, double norm){
+	int n=C->n;
+	double value,denominator,numerator;
+	double *Cv = (double*)calloc(n,sizeof(double));
 
-	powerIteration(BgHat, vec, n );
-	value = eigenVal(vec,BgHat,BgHat->norm);
+	MultMatrix(C,v,Cv);
+	numerator   = multiplyVectors(v, Cv, n, n); /* num = V*C*v */
+	denominator = multiplyVectors(v, v, n, n);	/* den = v*v */
+	value = numerator/denominator;
+	value = value - norm;
 
+	free(Cv);
 	return value;
 }
-
 
 
 /* main calculation of modularity */
@@ -143,27 +116,26 @@ int Alogrithem2(Matrix* matrix, int* subDiv, int* g, int n, int* a, int* b){
 	*a=0 ; *b=0;
 	vec = (double*)calloc(n, sizeof(double));
 
-	/*createBg(matrix,g,Bg,colSum);
-	createBgHat(Bg, colSum);
-	 */
-	value = calculateEigenPair(matrix, vec, n);
+	powerIteration(matrix,vec,n);
+	value = calculateEiganValue(matrix,vec,matrix->norm);
 
 	if (value <=0){
 		return 0;
 	}
-	printf("in Alg2: ");
-	printVector(vec,n,"eV");
+	printVector(vec,n,"A2ev");
 	for(j=0; j<n ; j++){
 		if(vec[j]<0){
 			subDiv[j] = -1;
-
 			++(*a);
-		}else if(vec[j] > 0){
+
+		}else if(vec[j] >= 0){
 			subDiv[j] = 1;
 			++(*b);
 		}
 
 	}
+
+
 	Q = calculateDeltaQ(subDiv, matrix);
 	if(Q < 0){
 		return 0;
@@ -185,8 +157,8 @@ void Alogrithem3(Matrix* matrix, int n, division* O, division* P){
 	while (P->DivisionSize > 0){
 		removeG(P, g); /* what to doo?? */;
 		divideable = Alogrithem2(matrix, subDiv,g,n,&a,&b );
-		printf("after Alg2: ");
-		printIntVector(subDiv,n,"eigenVector");
+		printIntVector(subDiv,n,"subDiv");
+		forceStop(__FUNCTION__, __LINE__);
 		if(divideable){
 			breaker++;
 			printf("dividavle\t");

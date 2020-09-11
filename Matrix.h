@@ -74,7 +74,6 @@ void multUnitMatrix(const Matrix *matrix, const double *vector, double *result);
 
 void MultMatrix(const Matrix *matrix, const double *vector, double *result);
 
-
 /*multiply matrix and int vector*/
 
 void multSparseMatrixInteger(const Matrix *matrix, const int *vector, double *result);
