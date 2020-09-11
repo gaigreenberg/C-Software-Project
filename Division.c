@@ -1,5 +1,5 @@
 
-#include "division.h"
+#include "Division.h"
 
 /*
 void createGroupCell(groupCell* cell , int* ingroup, int groupSize){
