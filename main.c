@@ -6,17 +6,18 @@
  */
 
 /* calculate M given matrix A - A is a spmat  */
-#include "spmat.h"
-#include "Bmat.h"
 #include "division.h"
 #include <assert.h>
 #include <stdio.h>
 #include <time.h>
+#include "Matrix.h"
+#include "Modularity.h"
 
-#define allocateDivision (division*)calloc(1,sizeof(division))
+#define allocateDivision ((division*)calloc(1,sizeof(division)))
+#define GP(A,B) {printf("\n");printGroup(A,"A");printf("\n");printGroup(B,"B");printf("\n");}
 
 /*error detect */
-void readErrCheck(int actual, int expected, int errorNum){
+void REC(int actual, int expected, int errorNum){
 	if(actual != (expected)){
 		printf("error in loadMatrix #%d \t",errorNum);
 		printf("actual = %d, expected =%d \n ", actual, expected);
@@ -30,28 +31,16 @@ void checkArgc(int argc){
 	}
 }
 
-void checkM(int M){
-	if( M == 0){
-		printf("M=0 ; there are no edges in the graph");
-		exit(EXIT_FAILURE);
-	}
-}
-
+/*
+ * forceStop(__FUNCTION__ , __LINE__)
+ */
 void forceStop( const char* func,const int line){
 	printf("\n ~ forced to stop in %s, line %d", func, line);
 	exit(EXIT_SUCCESS);
 }
 
-/*claculate M of matrix A when M is the sum of vertices degrees */
-double calculateM(spmat* A ,int n ){
-	int i;
-	double count = 0 ;
-	for(i=0 ; i<n ; ++i ){
-		count +=(double) A->Kvec[i];
-	}
-	return count;
 
-}
+
 
 /* update row according to mask */
 void updateRow(double* row, int n, int* mask, int k){
@@ -69,44 +58,49 @@ void updateRow(double* row, int n, int* mask, int k){
 
 /* read input and store in matrix, after allocation
  * closes input file*/
-void loadMatrix(FILE* input, spmat* matrix, int n){
+void loadMatrix(FILE* input, Matrix* matrix, int n){
 
 	int i, r, k, *mask = (int*)calloc(n,sizeof(int));
 
 	rewind(input);
 	r = fread(&n, sizeof(int), 1, input);
 	/*printf("|V| = %d\n",n);*/
-	(readErrCheck(r,1,1));		/*errror 1*/
+	(REC(r,1,1));		/*errror 1*/
 
 	for (i=0; i<n; i++){
 		r = fread(&k, sizeof(int), 1, input); /*read Ki*/
-		readErrCheck(r, 1, 2); /*error 2*/
-		(matrix->Kvec)[i]=k;
+		REC(r, 1, 2); /*error 2*/
+
+		(matrix->K)[i]=k;
+		matrix->M +=k;
 
 		if(k>0){
 			r = fread(mask, sizeof(int), k, input);
-			readErrCheck(r, k, 3); /*error 3*/
+			REC(r, k, 3); /*error 3*/
 
-			AddRow2(matrix , mask, k, i);
+			addRowNewFormat(matrix , mask, k, i);
 		}
 	}
+
+	createNmatrix(matrix);
+	calculateNorm1(matrix);
+
+
 	free(mask);
 
 }
 
 /* write partiton with maximized modularity*/
 void writeDivision(FILE* output, division* div){
-	int k, n=div->size;
-	int* members;
+	int k, n=div->DivisionSize;
 	groupCell *current = div->groups, *prev;
 
 	fwrite(&n, sizeof(int), 1 , output);
 
 	while(current != NULL){
-		k = groupSize(current);
-		members = current->grp->members;
+		k = current->groupSize;
 		fwrite(&k, sizeof(int), 1, output);
-		fwrite(members, sizeof(int), k, output);
+		fwrite((current->group), sizeof(int), k, output);
 		prev = current;
 		current = current->nextGroup;
 		freeGroupCell(prev);
@@ -117,75 +111,78 @@ void writeDivision(FILE* output, division* div){
 }
 
 /*B should be created before, Bg,subDivision should be allocated before*/
-int Alogrithem2(spmat* A, spmat* Bg,int M, int* subDivision, int* g, int n, int* a, int* b){
-	double value, *vec, Q, *colSum;
+int Alogrithem2(Matrix* matrix, int* subDiv, int* g, int n, int* a, int* b){
+	double value, *vec, Q;
 	int j;
 
+	matrix -> filter = g;
+
 	*a=0 ; *b=0;
-	vec 		  = (double*)calloc(n, sizeof(double));
-	subDivision   = (int*)calloc(n,sizeof(int));
-	colSum		  = calloc(A->n, sizeof(double));
-	printf("A2: calculating Bg\t-> ");
+	vec = (double*)calloc(n, sizeof(double));
 
-	createBg(A,M,g,Bg,colSum);
-
-
-	printf("\ncalculating Bg fucking Hat\t-> ");
+	/*createBg(matrix,g,Bg,colSum);
 	createBgHat(Bg, colSum);
-
-	printf("calculating eigen pair \t-> ");
-	value = calculateEigenPair(vec, Bg, n, colSum);
+	 */
+	value = calculateEigenPair(matrix, vec, n);
 
 	if (value <=0){
 		return 0;
 	}
-	printf("creating sub-Division vector\t-> ");
+	printf("in Alg2: ");
+	printVector(vec,n,0);
 	for(j=0; j<n ; j++){
 		if(vec[j]<0){
-			subDivision[j] = -1;
+			subDiv[j] = -1;
+
 			++(*a);
-		}else if(vec[j]>0){
-			subDivision[j] = 1;
+		}else if(vec[j] > 0){
+			subDiv[j] = 1;
 			++(*b);
 		}
 
 	}
-
-	printf("calculating delta fucking Q\t ");
-	Q = calculateDeltaQ(subDivision, Bg);
+	Q = calculateDeltaQ(subDiv, matrix);
 	if(Q < 0){
 		return 0;
 	}
-	printf("A2;\n");
 
 	free(vec);
 	return 1;
 }
 
 /*B should be created before, divisions O&P should be created before before*/
-void Alogrithem3(spmat* A, spmat* Bg, int n,int M, division* O, division* P){
-	group *X = calloc(1,sizeof(group)), *Y=calloc(1,sizeof(group));
-	int *g = calloc(n, sizeof(int)), *subDiv = calloc(n,sizeof(int));
-	int a=0 ,b=0, divideable;
+void Alogrithem3(Matrix* matrix, int n, division* O, division* P){
+	groupCell *A = cg, *B=cg;
+	int *g = (int*)calloc(n, sizeof(int)), *subDiv = (int*)calloc(n,sizeof(int));
 
-	printf("\t A3: Entering loop:\n");
+	int a=0 ,b=0, divideable , breaker=0;
 
-	while (P->size > 0){
+	/*printf("\nA3: Entering loop:\n");*/
+
+	while (P->DivisionSize > 0){
 		removeG(P, g); /* what to doo?? */;
-		divideable = Alogrithem2(A, Bg, M, subDiv,g,n,&a,&b );
-
+		divideable = Alogrithem2(matrix, subDiv,g,n,&a,&b );
+		printf("after Alg2: ");
+		printIntVector(subDiv,n,100);
 		if(divideable){
-			printf("\t\tA3:dividavle\n");
-			subDividedBySubdiviosion(X,Y, subDiv,n, a, b);
-			reOrder(P,O,X,Y);
+			breaker++;
+			printf("dividavle\t");
+			subDividedBySubdiviosion(A,B, subDiv,n, a, b);
+
+			GP(A,B);
+			printf("\n");
+			reOrder(P,O,A,B);
+			if(breaker == 25){
+				printf("Algorithem 3 got stuck in LOOP");
+				forceStop(__FUNCTION__, __LINE__);
+			}
 		}
 		else{
-			printf("\t\tA3:un-dividavle\n");
+			printf("\n->reached un-dividavle");
 
-			createDivision(X, n, g);
-			add(O,X);
+			CreateGroupCell(A, n, g);
+			add(O,A);
 		}
-		free(Bg);
 	}
 }
 
@@ -234,10 +231,9 @@ void printGraph(FILE* input, int n){
 /* argv[1] = input || argv[2] = output */
 int main(int argc, char* argv[]) {
 	FILE *inMatrix, *outputDiv;
-	spmat *A, *Bg;
+	Matrix *matrix;
 	division *O = allocateDivision, *P = allocateDivision /*, *test=allocateDivision*/;
 	int n;
-	double M;
 
 	(checkArgc(argc));
 	srand(time(NULL));
@@ -246,17 +242,12 @@ int main(int argc, char* argv[]) {
 
 	/*read input matrix to sparse and store as Sparse Matrix */
 	fread(&n, 1 ,sizeof(int), inMatrix);
-	A = allocateMatrix(n);
+	matrix = allocateMatrix(n);
 
-	loadMatrix(inMatrix,A,n);
-	printMatrix(A);
-	printf("\n\t ~~ loading Graph Complete ~~\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
+	loadMatrix(inMatrix,matrix,n);
+	printf("\n\t ~~ loading Graph Complete ~~\n");
 
-	/* pre calculations & settings */
-	Bg  = allocateMatrix(n);
-	M  = calculateM(A,n);
-	printf("M = %f\n", M);
-	checkM(M);
+
 
 	setEmptyDivision(O);
 	setTrivialDivision(P,n);
@@ -265,7 +256,10 @@ int main(int argc, char* argv[]) {
 	/*works untill here! without B-part*/
 	/* main calculation and outputting*/
 
-	Alogrithem3(A, Bg, n, M, O, P);
+	Alogrithem3(matrix, n, O, P);
+	printf("\n Algorithem 3 is Done\n_________________________________________________________________________________________________________\n");
+
+	forceStop(__FUNCTION__, __LINE__);
 	writeDivision(outputDiv,O);
 
 	/*free memory and finish program
