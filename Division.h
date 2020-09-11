@@ -1,7 +1,7 @@
 /*
- * division.h
+ * Division.h
  *
- *  Created on: 25 баевЧ 2020
+ *  Created on: 25 ГЎГ ГҐГўГ— 2020
  *      Author: omlad
  */
 
