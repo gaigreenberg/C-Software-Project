@@ -10,14 +10,16 @@
 #define DIVISION_H_
 	#include "stddef.h"
 	#include "stdlib.h"
+	#include <stdio.h>
 
-	typedef struct _group{
-		int size;		 /*number of vertices in group*/
-		int* members;	/*vertices in group*/
-	}group;
+	#define cn(n) ((int*)calloc(n,sizeof(int)))
+	#define cg ((groupList)calloc(1,sizeof(groupCell)))
+	#define ggc ((group*)calloc(1,sizeof(group)))
+
 
 	typedef struct _GroupCell{
-		group* grp;
+		int* group;
+		int groupSize;
 		struct _GroupCell* nextGroup;
 	}groupCell;
 
@@ -25,19 +27,12 @@
 
 	typedef struct _division{
 		groupList groups;
-		int size;
+		int DivisionSize;
 	}division;
 
-	void createGroupCell(groupCell* cell , group* ingroup);
+	/*void createGroupCellOld(groupCell* cell , group* ingroup);*/
 
-	/* when subdivision is final storing subgroups in approproate DS */
-	void subDividedBySubdiviosion(group* A, group* B, int* subDivision, int n, int a, int b);
-
-	void createDivision(group* A, int n, int* g);
-
-	void freeDivision(division* div);
-
-	int groupSize(groupCell* A);
+	void CreateGroupCell(groupCell* A, int n, int* g);
 
 	void setTrivialDivision(division* div, int n);
 
@@ -47,13 +42,18 @@
 	 * new groups will be created when transformed from vector represtation back to group DS*/
 	void removeG(division* P, int* g);
 
-	void add(division* div, group* gr);
+	void add(division* div, groupCell* newGroup);
 
-	void reOrder(division* P, division* O, group* X, group* Y);
+	void reOrder(division* P, division* O, groupCell* A, groupCell* B);
 
-	void freeGroup(group* gr);
+	/* when subdivision is final storing subgroups in approproate DS */
+	void subDividedBySubdiviosion(groupCell* A, groupCell* B, int* subDivision, int n, int a, int b);
 
 	void freeGroupCell(groupCell* cell);
+
+	void freeDivision(division* div);
+
+	void printGroup(groupCell *A, char* name);
 
 	void madeUpDivision(division* div);
 

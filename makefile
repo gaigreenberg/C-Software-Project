@@ -1,8 +1,8 @@
 FLAGS 	= -ansi -Wall -Wextra -Werror -pedantic-errors
 LIBS 	= -lm
-SOURCE	= main.c spmat.c pIter.c division.c Bmat.c
-OBJECTS	= main.o spmat.o pIter.o division.o Bmat.o
-HEADER	= spmat.h pIter.h division.h Bmat.h
+SOURCE	= main.c Matrix.c PowerIteration.c division.c Modularity.c
+OBJECTS	= main.o Matrix.o PowerIteration.o division.o Modularity.o
+HEADER	= Matrix.h PowerIterartion.h division.h Modularity.h
 
 all: $(OBJECTS)
 	gcc $(OBJECTS) -o cluster $(LIBS)
@@ -14,17 +14,17 @@ clean:
 main.o: main.c
 	gcc $(FLAGS) -c main.c
 
-spmat.o: spmat.c
-	gcc $(FLAGS) -c spmat.c
+Matrix.o: Matrix.c
+	gcc $(FLAGS) -c Matrix.c
 
-pIter.o: pIter.c
-	gcc $(FLAGS) -c pIter.c
+PowerIteration.o: PowerIteration.c
+	gcc $(FLAGS) -c PowerIteration.c
 
 division.o: division.c
 	gcc $(FLAGS) -c division.c
 
-Bmat.o: Bmat.c
-	gcc $(FLAGS) -c Bmat.c
+Modularity.o: Modularity.c
+	gcc $(FLAGS) -c Modularity.c
 
 
 
