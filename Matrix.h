@@ -17,7 +17,7 @@ typedef struct _Matrix {
 	int		M;
 	double 	norm;
 
-	list	*A;
+	list*	A;
 
 	/* K[j] is the degree of node j
 	 * kmFactor[j] = K[j]/M */
@@ -83,7 +83,5 @@ void multNmatrixInteger(const Matrix *matrix, const int *vector, double *result)
 void multUnitMatrixInteger(const Matrix *matrix, const int *vector, double *result);
 
 void MultMatrixInteger(const Matrix *matrix, const int *vector, double *result);
-
-
 
 #endif

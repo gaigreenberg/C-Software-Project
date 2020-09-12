@@ -36,7 +36,7 @@ void REC(int actual, int expected, int errorNum){
 /*print douvle vector*/
 void printVector(double* vector, int n,char* name){
 	int j;
-	printf("%s=\n\t{", name);
+	printf("%s=\t{", name);
 	for(j=0; j<n ; j++){
 			printf("%.1f", vector[j]);
 			if(j<(n-1)) printf(", ");
@@ -47,7 +47,7 @@ void printVector(double* vector, int n,char* name){
 /*print int vector*/
 void printIntVector(int* vector, int n,char* name){
 	int j;
-	printf("%s=\n{", name);
+	printf("%s=\t{", name);
 	for(j=0; j<n ; j++){
 			printf("%d", vector[j]);
 			if(j<(n-1)) printf(", ");
@@ -79,20 +79,25 @@ void printGraph(FILE* input, int n){
 
 /*prints output file - shpuld be completly written before*/
 void printDivisionFile(char *outPutFile){
-FILE* out = fopen(outPutFile,"r");
-int n, j, i, d, *indices;
-fread(&n, sizeof(int), 1, out);
-indices = (int*)calloc(n,sizeof(int));
-printf("there are %d groups in the division:",n);
-for(j=0; j<n;j++){
-	fread(&d,sizeof(int),1,out);
-	fread(indices,sizeof(int),d,out);
-	printf("\ngroup #%d has %d nodes:\n\t ",j+1,d);
-	for(i=0; i<d; i++){
-		printf("%d,",indices[i]);
-	}
-}
+	FILE* out = fopen(outPutFile,"r");
+	int n, r, j, i, d, *indices;
+	r = fread(&n, sizeof(int), 1, out);
+	REC(r,1,1);
 
+	indices = (int*)calloc(n,sizeof(int));
+	printf("there are %d groups in the division:",n);
+
+	for(j=0; j<n;j++){
+		r = fread(&d,sizeof(int),1,out);
+		REC(r, 1, 2);
+		fread(indices,sizeof(int),d,out);
+		REC(r, d, 3);
+		printf("\ngroup #%d has %d nodes:\n\t ",j+1,d);
+		for(i=0; i<d; i++){
+			printf("%d,",indices[i]);
+		}
+	}
+	free(indices);
 
 }
 

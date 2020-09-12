@@ -54,15 +54,18 @@ void loadMatrix(FILE* input, Matrix* matrix, int n){
 
 /* write partiton with maximized modularity*/
 void writeDivision(FILE* output, division* div){
-	int k, n=div->DivisionSize;
+	int k, r, n=div->DivisionSize;
 	groupCell *current = div->groups, *prev;
 
-	fwrite(&n, sizeof(int), 1 , output);
+	r = fwrite(&n, sizeof(int), 1 , output);
+	REC(r,1,1);
 
 	while(current != NULL){
 		k = current->groupSize;
-		fwrite(&k, sizeof(int), 1, output);
-		fwrite((current->group), sizeof(int), k, output);
+		r = fwrite(&k, sizeof(int), 1, output);
+		REC(r,1,2);
+		r = fwrite((current->group), sizeof(int), k, output);
+		REC(r,k,3);
 		prev = current;
 		current = current->nextGroup;
 		freeGroupCell(prev);
@@ -90,21 +93,15 @@ int main(int argc, char* argv[]) {
 
 	loadMatrix(inMatrix,matrix,n);
 
-	printf("\n\t ~~ loading Graph Complete ~~\n");
-
-
+	printf("\n\t ~~ loading Graph Complete ~~\n\n");
 
 	setEmptyDivision(O);
 	setTrivialDivision(P,n);
 
 
-	/*works untill here! without B-part*/
-	/* main calculation and outputting*/
-
 	Alogrithem3(matrix, n, O, P);
 	printf("\n Algorithem 3 is Done\n_________________________________________________________________________________________________________\n");
 
-	forceStop(__FUNCTION__, __LINE__);
 	writeDivision(outputDiv,O);
 
 	/*free memory and finish program
@@ -115,6 +112,9 @@ int main(int argc, char* argv[]) {
 	freeMatrix(Bg);
 	freeMatrix(A);*/
 	printf("\n\n ~~~ ~~ ~ finished running successfully ~ ~~ ~~~");
+
+	printf("\nchecking output: \n");
+	printDivisionFile(argv[2]);
 	return 0;
 }
 

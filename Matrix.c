@@ -181,7 +181,6 @@ void combineVectors(int n, double* v1, double* v2, double *v3, double* result){
 	}
 }
 
-
 /*multiply matrix and double vector*/
 
 void multSparseMatrix(const Matrix *matrix, const double *vector, double *result){
@@ -252,7 +251,6 @@ void MultMatrix(const Matrix *matrix, const double *vector, double *result){
 
 }
 
-
 /*multiply matrix and int vector*/
 
 void multSparseMatrixInteger(const Matrix *matrix, const int *vector, double *result){
@@ -279,10 +277,10 @@ void multSparseMatrixInteger(const Matrix *matrix, const int *vector, double *re
 
 void multNmatrixInteger(const Matrix* matrix, const int *vector, double *result){
 	double *v1, dotProduct, Nij;
-		int i, j, *v2, n=matrix->n;
-		v1 = matrix->kmFactor ; v2 = matrix->K;
+	int i, j, *v2, n=matrix->n;
+	v1 = matrix->kmFactor ; v2 = matrix->K;
 
-		for(i=0; i<n ; i++){
+	for(i=0; i<n ; i++){
 			dotProduct=0;
 			if(matrix->filter[i]){
 				for(j=0; j<n ; j++){
@@ -291,11 +289,11 @@ void multNmatrixInteger(const Matrix* matrix, const int *vector, double *result)
 					dotProduct += Nij*vector[j];
 					}
 				}
-				result[j] = dotProduct;
 			}
-		}
+			result[i] = dotProduct;
 
 	}
+}
 
 void multUnitMatrixInteger(const Matrix* matrix, const int *vector, double *result){
 	int j, n=matrix->n;

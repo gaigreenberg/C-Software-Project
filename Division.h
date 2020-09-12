@@ -15,7 +15,7 @@
 
 
 	#define allocateDivision ((division*)calloc(1,sizeof(division)))
-	#define printGroups(A,B) {printf("\n");printGroup(A,"A");printf("\n");printGroup(B,"B");printf("\n");}
+	#define printGroups(A,B) {printGroup(A,"A");printf("\n");printGroup(B,"B");}
 
 	#define cn(n) ((int*)calloc(n,sizeof(int)))
 	#define cg ((groupList)calloc(1,sizeof(groupCell)))
@@ -45,7 +45,7 @@
 
 	/*removes first group from division, creater a vector representation of it & free group memory
 	 * new groups will be created when transformed from vector represtation back to group DS*/
-	void removeG(division* P, int* g);
+	void removeG(division* P, int* g, int n);
 
 	void add(division* div, groupCell* newGroup);
 
@@ -61,6 +61,8 @@
 	void printGroup(groupCell *A, char* name);
 
 	/* for testing */
+
+	void printDivision(division* div,char* name);
 
 	void madeUpDivision(division* div);
 

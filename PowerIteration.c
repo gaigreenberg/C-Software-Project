@@ -93,7 +93,7 @@ void powerIteration(Matrix* matrix,double* vec,int n ){
 
 
 	}while (keepRunning);
-	printf("power iteration took %d iterations\n",iter);
+	/*printf("power iteration took %d iterations\n",iter);*/
 
 	/*free(nextVec);*/
 	}

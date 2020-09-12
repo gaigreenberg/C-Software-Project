@@ -41,7 +41,7 @@ void calculateMatrixNorm(Matrix *matrix){
 			 max = colls[i];
 		 }
 	 }
-	 printVector(colls, n, "matrix columns");
+	 printVector(colls, n, "\nmatrix columns sums:");
 	 printf("Norm1 = %f\n", max);
 	 free(colls);
 	 matrix->norm = max;
@@ -79,7 +79,7 @@ double multVecIntDouble(int *Vint , double *Vdouble, int nInt , int nDouble){
 
 /* calculate Q: by definition */
 double calculateDeltaQ(int* s, Matrix* matrix){
-	double result, *temp=(double*)calloc(matrix->n,sizeof(double));
+	double result, *temp = (double*)calloc(matrix->n,sizeof(double));
 	MultMatrixInteger(matrix,s,temp);
 	result = multVecIntDouble(s,temp, matrix->n,matrix->n);
 	return (result*0.5);
@@ -113,7 +113,10 @@ int Alogrithem2(Matrix* matrix, int* subDiv, int* g, int n, int* a, int* b){
 
 	matrix -> filter = g;
 
-	*a=0 ; *b=0;
+	if( *a != 0 || *b != 0){
+		printf("probelm reseting a,b");
+		forceStop(__FUNCTION__, __LINE__);
+	}
 	vec = (double*)calloc(n, sizeof(double));
 
 	powerIteration(matrix,vec,n);
@@ -122,21 +125,24 @@ int Alogrithem2(Matrix* matrix, int* subDiv, int* g, int n, int* a, int* b){
 	if (value <=0){
 		return 0;
 	}
-	printVector(vec,n,"A2ev");
+
 	for(j=0; j<n ; j++){
 		if(vec[j]<0){
-			subDiv[j] = -1;
+			subDiv[j] = -1*g[j];
 			++(*a);
 
-		}else if(vec[j] >= 0){
-			subDiv[j] = 1;
+		}else if(vec[j] > 0){
+			subDiv[j] = 1*g[j];
 			++(*b);
+		}else{
+			subDiv[j]=0;
 		}
 
 	}
 
 
 	Q = calculateDeltaQ(subDiv, matrix);
+	/*printf("dQ = %.2f\n",Q);*/
 	if(Q < 0){
 		return 0;
 	}
@@ -147,41 +153,40 @@ int Alogrithem2(Matrix* matrix, int* subDiv, int* g, int n, int* a, int* b){
 
 /*B should be created before, divisions O&P should be created before before*/
 void Alogrithem3(Matrix* matrix, int n, division* O, division* P){
-	groupCell *A = cg, *B=cg;
+	groupCell *A, *B;
 	int *g = (int*)calloc(n, sizeof(int)), *subDiv = (int*)calloc(n,sizeof(int));
 
-	int a=0 ,b=0, divideable , breaker=0;
+	int a ,b, divideable , breaker=0;
 
 	/*printf("\nA3: Entering loop:\n");*/
 
 	while (P->DivisionSize > 0){
-		removeG(P, g); /* what to doo?? */;
+		printf("\n #%d\n",breaker);
+
+		a = 0 ; b = 0;
+		removeG(P, g, n); /* what to doo?? */;
+		/*printIntVector(g, n, "g");*/
 		divideable = Alogrithem2(matrix, subDiv,g,n,&a,&b );
-		printIntVector(subDiv,n,"subDiv");
-		forceStop(__FUNCTION__, __LINE__);
+		/*printIntVector(subDiv,n,"subDiv");*/
+		A=cg ; B=cg ;
 		if(divideable){
 			breaker++;
-			printf("dividavle\t");
-			subDividedBySubdiviosion(A,B, subDiv,n, a, b);
 
-			printGroups(A,B);
-			printf("\n");
+			subDividedBySubdiviosion(A,B, subDiv,n, a, b);
 			reOrder(P,O,A,B);
-			if(breaker == 25){
+
+
+			if(breaker == 2*n){
 				printf("Algorithem 3 got stuck in LOOP");
 				forceStop(__FUNCTION__, __LINE__);
 			}
 		}
 		else{
-			printf("\n->reached un-dividavle");
-
 			CreateGroupCell(A, n, g);
 			add(O,A);
 		}
 	}
 }
-
-
 
 /*Algorithem 4*/
 
