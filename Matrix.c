@@ -17,76 +17,6 @@ void makeCell (cell* cell, int column, double data){
 	cell->nextCell = NULL;
 }
 
-/* copy cell information to another cell */
-void CopyCell (list origin , list copy){
-	if(origin == NULL){
-		copy = NULL;
-		return;
-	}
-	copy->col 		= origin->col;
-	copy->value 	= origin->value;
-	copy->nextCell 	= origin->nextCell;
-}
-
-/* make a deep-copied list */
-list CopyList(list old){
-	list newList=NULL , current = old, temp;
-	int first = 1;
-	list copy = (list)calloc (1, sizeof(cell));
-
-	if (old == NULL){
-		free(copy);
-		return NULL;
-	}
-	while (current != NULL){
-		if (first){
-			CopyCell(current, newList);
-			first = 0;
-			current = current->nextCell;
-			temp=newList;
-		}
-		else{
-			CopyCell(current, copy);
-			temp->nextCell = copy;
-			temp = temp->nextCell;
-			current = current->nextCell;
-		}
-	}
-
-	return newList;
-
-
-}
-
-/* make a deep-copied list */
-list CopyListFiltered(list old, int* filter){
-	list newList=NULL , current = old, temp;
-	int first = 1;
-	list copy = (list)calloc (1, sizeof(cell));
-
-	if (old == NULL){
-		free(copy);
-		return NULL;
-	}
-	while (current != NULL){
-		if(filter[current->col] == 1){
-			if (first){
-				CopyCell(current, newList);
-				first = 0;
-				temp=newList;
-			}
-			else{
-				CopyCell(current, copy);
-				temp->nextCell = copy;
-				temp = temp->nextCell;
-			}
-		}
-		current = current->nextCell;
-
-	}
-	return newList;
-}
-
 
 /* Allocates a new linked-lists sparse matrix of size n */
 Matrix* allocateMatrix(int n){
@@ -97,18 +27,6 @@ Matrix* allocateMatrix(int n){
 	 matrix->K = (int*) calloc (n, sizeof(int));
 	 matrix->kmFactor = (double*) calloc(n,sizeof(double));
 
-	 if(&matrix->n == NULL){
-		 free (matrix);
-		 return NULL;
-	 }
-	 if(matrix->A == NULL){
-		 free (matrix);
-		 return NULL;
-	 }
-	 if(matrix->K == NULL){
-		 free (matrix);
-		 return NULL;
-	 }
 	 return matrix;
 }
 
@@ -118,14 +36,19 @@ void freeMatrix(Matrix *matrix){
 	 list current,previous;
 	 for (;j<n;++j){
 		 current = ((list*)(matrix->A))[j];
+		 previous = current;
 		 while (current != NULL){
 			 previous = current;
 			 current = current->nextCell;
 			 free(previous);
 		 }
+		 if(previous != NULL){
+			 free (previous);
+		 }
 	 }
 	 free(matrix->K);
 	 free(matrix->kmFactor);
+	 free(matrix->A);
 	 free(matrix);
 
 }
@@ -147,22 +70,23 @@ void AddRow(Matrix *matrix, const int *newRow, int k, int i){
 	list current,newCell;
 
 	((list*)matrix->A)[i] = NULL;
-	current = (list)calloc(1,sizeof(cell));
 
 	for (;j<k;++j){
 
 			newCell = (list)calloc(1,sizeof(cell));
-			if (newCell == NULL || current == NULL){
-				freeMatrix(matrix);
-				}
+			if (newCell == NULL){
+				printf("error loading matrix, row:%d",i);
+				exit(EXIT_FAILURE);
+			}
 			makeCell(newCell, newRow[j], 1.0);
-			assert(newCell->nextCell == NULL);
+
 			if(firstElement){
 				current = newCell;
 				((list*)matrix->A)[i] = current;
 				firstElement = 0;
 				assert(((list*)matrix->A)[i]->nextCell == NULL);
 			}
+
 			else{
 			current->nextCell = newCell;
 			assert(newCell->nextCell == NULL);
@@ -241,6 +165,7 @@ void MultMatrix(const Matrix *matrix, const double *vector, double *result){
 	v2 = (double*)calloc(n,sizeof(double));
 	v3 = (double*)calloc(n,sizeof(double));
 
+	/*printIntVector(matrix->filter,n,"g");*/
 	multSparseMatrix(matrix, vector, v1);
 	multNmatrix(matrix,vector,v2);
 	multUnitMatrix(matrix, vector, v3);

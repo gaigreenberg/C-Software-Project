@@ -74,7 +74,6 @@ void powerIteration(Matrix* matrix,double* vec,int n ){
 	do{
 		nextVec = (double*)calloc(n,sizeof(double));
 		iter++;
-
 		MultMatrix(matrix,vec,nextVec);
 		magnitude = computeMagnitude(nextVec,n);
 		normalizeVector(nextVec,magnitude,n);
@@ -91,11 +90,8 @@ void powerIteration(Matrix* matrix,double* vec,int n ){
 			keepRunning = 0;
 		}
 
-
 	}while (keepRunning);
 	/*printf("power iteration took %d iterations\n",iter);*/
-
-	/*free(nextVec);*/
 	}
 
 

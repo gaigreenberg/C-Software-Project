@@ -27,18 +27,18 @@ void loadMatrix(FILE* input, Matrix* matrix, int n){
 	rewind(input);
 	r = fread(&n, sizeof(int), 1, input);
 	/*printf("|V| = %d\n",n);*/
-	(REC(r,1,1));		/*errror 1*/
+	REC(__FUNCTION__, r,1,1);		/*errror 1*/
 
 	for (i=0; i<n; i++){
 		r = fread(&k, sizeof(int), 1, input); /*read Ki*/
-		REC(r, 1, 2); /*error 2*/
+		REC(__FUNCTION__, r, 1, 2); /*error 2*/
 
 		(matrix->K)[i]=k;
 		matrix->M +=k;
 
 		if(k>0){
 			r = fread(mask, sizeof(int), k, input);
-			REC(r, k, 3); /*error 3*/
+			REC(__FUNCTION__, r, k, 3); /*error 3*/
 
 			AddRow(matrix , mask, k, i);
 		}
@@ -54,24 +54,24 @@ void loadMatrix(FILE* input, Matrix* matrix, int n){
 
 /* write partiton with maximized modularity*/
 void writeDivision(FILE* output, division* div){
-	int k, r, n=div->DivisionSize;
+	int k, r, n=div->DivisionSize, *members;
 	groupCell *current = div->groups, *prev;
 
 	r = fwrite(&n, sizeof(int), 1 , output);
-	REC(r,1,1);
+	REC(__FUNCTION__, r,1,1);
 
 	while(current != NULL){
 		k = current->groupSize;
+		members = current->group;
 		r = fwrite(&k, sizeof(int), 1, output);
-		REC(r,1,2);
-		r = fwrite((current->group), sizeof(int), k, output);
-		REC(r,k,3);
+		REC(__FUNCTION__, r,1,2);
+		r = fwrite(members, sizeof(int), k, output);
+		REC(__FUNCTION__, r,k,3);
 		prev = current;
 		current = current->nextGroup;
 		freeGroupCell(prev);
 
 	}
-	fclose(output);
 
 }
 
@@ -102,6 +102,7 @@ int main(int argc, char* argv[]) {
 	Alogrithem3(matrix, n, O, P);
 	printf("\n Algorithem 3 is Done\n_________________________________________________________________________________________________________\n");
 
+	DivPrint(O, "written in output file");
 	writeDivision(outputDiv,O);
 
 	/*free memory and finish program
@@ -111,10 +112,19 @@ int main(int argc, char* argv[]) {
 	freeDivision(P);
 	freeMatrix(Bg);
 	freeMatrix(A);*/
-	printf("\n\n ~~~ ~~ ~ finished running successfully ~ ~~ ~~~");
 
 	printf("\nchecking output: \n");
 	printDivisionFile(argv[2]);
+
+	printf("\n\nMemory freeing section:\n");
+
+	fclose(inMatrix); fclose(outputDiv);
+	freeMatrix(matrix); printf("Matrix, ");
+	free(O);
+	free(P);
+
+	printf("\n\n ~~~ ~~ ~ finished running successfully ~ ~~ ~~~");
+
 	return 0;
 }
 

@@ -12,7 +12,7 @@
 				i++;
 			}
 		}
-		members = (int*)realloc(members, i);
+		members = (int*)realloc(members, i*sizeof(int));
 		A->groupSize = i;
 		A->group= members;
 		A->nextGroup = NULL;
@@ -64,14 +64,14 @@
 
 	void add(division* div, groupCell* newGroup){
 
+		printGroup(newGroup,"gr");printf("is in 'add'\n");
+
 		groupCell* temp = div->groups;
 		div->groups=newGroup;
 		div->groups->nextGroup = temp;
-
 		div->DivisionSize ++;
 
 	}
-
 
 	void reOrder(division* P, division* O, groupCell* A, groupCell* B){
 		int a=A->groupSize, b=B->groupSize;
@@ -79,28 +79,35 @@
 
 
 		if (a == 0){
+			printf("\na=0\t");
 			add(O,B);
+			free(A);
 			return;
 
 		}else if (a == 1){
+			printf("\na=1\t");
 			add(O,A);
 
 		}else{
+			printf("\na>1\t");
 			add(P,A);
 
 		}
 		if(b == 0){
+			printf("\nb=0\t");
 			add(O,A);
+			free(B);
 			return;
 
-		}else if(b == 1){
+		}else if( b==1){
+			printf("\nb=1\t");
 			add(O,B);
 
 		}else{
+			printf("\nb>1\t");
 			add(P,B);
 		}
 	}
-
 
 	/* when subdivision is final storing subgroups in approproate DS */
 	void subDividedBySubdiviosion(groupCell* A, groupCell* B, int* subDivision, int n, int a, int b){
@@ -134,6 +141,7 @@
 		B->group = groupB;
 
 
+
 	}
 
 	void freeGroupCell(groupCell* cell){
@@ -146,13 +154,16 @@
 			 groupList current,previous;
 			 for (;j<n;++j){
 				 current = div->groups;
+				 previous = current;
 				 while (current != NULL){
 					 previous = current;
 					 current = current->nextGroup;
 					 freeGroupCell(previous);
 				 }
+				 if ( previous != NULL){
+					 freeGroupCell(previous);
+				 }
 			 }
-			 free(div);
 
 		 }
 
@@ -170,20 +181,26 @@
 }
 
 	void printDivision(division* div,char* name){
-		int j,i,s = div->DivisionSize;
+		int j,s = div->DivisionSize;
 		groupCell* curr = div->groups;
 
-		printf("\ndivision %s size: %d",name,s);
+		printf("\ndivision %s size: %d\n",name,s);
 		for(j=0;j<s;j++){
-			printf("\n\tgroup %d:(%d) {",j,curr->groupSize);
-			for(i=0; i<(curr->groupSize); i++){
-				printf(" %d",curr->group[i]);
-			}
-			printf("}");
+			printIntVector(curr->group,curr->groupSize, "\t");
+			printf("\n");
 			curr = curr->nextGroup;
 		}
 	}
-/* for testing */
+	/* for testing */
+	void DivPrint(division* div, char* name){
+		groupCell* cell = div->groups;
+		int j;
+		printf("%s of size %d:\n",name, div->DivisionSize);
+		for(j=0; j< div->DivisionSize; j++){
+			printIntVector(cell->group,cell->groupSize, "");
+			cell = cell->nextGroup;
+		}
+	}
 
 	/*set div as a pre=set division - written just for testing filw writting*/
 	void madeUpDivision(division* div){
