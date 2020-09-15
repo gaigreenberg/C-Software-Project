@@ -64,6 +64,8 @@
 
 	void printDivision(division* div,char* name);
 
+	void DivPrint(division* div, char* name);
+
 	void madeUpDivision(division* div);
 
 

@@ -19,7 +19,7 @@ void forceStop( const char* func,const int line);
 void checkArgc(int argc);
 
 /*check if fread & fwrite finished as expected*/
-void REC(int actual, int expected, int errorNum);
+void REC(const char* func, int actual, int expected, int errorNum);
 
 /*print douvle vector*/
 void printVector(double* vector, int n,char* name);
