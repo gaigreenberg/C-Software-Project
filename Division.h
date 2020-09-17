@@ -23,50 +23,81 @@
 
 
 	typedef struct _GroupCell{
-		int* group;
-		int groupSize;
-		struct _GroupCell* nextGroup;
+		int groupSize;		/* number of vertices in group */
+		int* group;			/* vector of indices in group */
+		struct _GroupCell* nextGroup;	/* next group in division */
 	}groupCell;
 
 	typedef groupCell* groupList;
 
 	typedef struct _division{
-		groupList groups;
-		int DivisionSize;
+		groupList groups;	/* a pointer to first group in divisiob */
+		int DivisionSize;	/* number of groups in divisiob */
 	}division;
 
-	/*void createGroupCellOld(groupCell* cell , group* ingroup);*/
-
+	/*
+		* create a cell conatining the group g
+		 * groupCell should be allocated before
+		 * will be part of linked-list
+		 * */
 	void CreateGroupCell(groupCell* A, int n, int* g);
 
+	/*set div as a division with all numbers from 0 to n-1*/
 	void setTrivialDivision(division* div, int n);
 
+	/*
+	 * set div as a division with no groups
+	 *  */
 	void setEmptyDivision(division* div);
 
-	/*removes first group from division, creater a vector representation of it & free group memory
-	 * new groups will be created when transformed from vector represtation back to group DS*/
+	/*
+	 * removes first group from division
+	 * creates a vector representation of it & free group memory
+	 * new groups will be created according to sub-division
+	 * */
 	void removeG(division* P, int* g, int n);
 
+	/*
+	 * add newgroup to div
+	 * */
 	void add(division* div, groupCell* newGroup);
 
+	/*
+	 * add A,B to O,P according to A,B sizes
+	 *  */
 	void reOrder(division* P, division* O, groupCell* A, groupCell* B);
 
-	/* when subdivision is final storing subgroups in approproate DS */
+	/*
+	 * set groups A,B as subgroups of g
+	 * according to subdivision vector
+	 *  */
 	void subDividedBySubdiviosion(groupCell* A, groupCell* B, int* subDivision, int n, int a, int b);
 
+	/*
+	 * free the cell
+	 * */
 	void freeGroupCell(groupCell* cell);
 
+	/*
+	 * free division
+	 *  */
 	void freeDivision(division* div);
-
-	void printGroup(groupCell *A, char* name);
 
 	/* for testing */
 
+	/*
+	 * print group from cell
+	 * group(groupsize) : { group indices }
+	 * */
+	void printGroup(groupCell *A, char* name);
+
+	/*
+	 * print division
+	 * division(size)
+	 * 	groups{}
+	 * */
 	void printDivision(division* div,char* name);
 
-	void DivPrint(division* div, char* name);
-
-	void madeUpDivision(division* div);
 
 
 #endif /* DIVISION_H_ */

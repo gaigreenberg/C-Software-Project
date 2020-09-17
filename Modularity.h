@@ -28,12 +28,16 @@ void calculateMatrixNorm(struct _Matrix *C);
 double multiplyVectors(double *v1 , double *v2, int n1, int n2);
 
 /* calculate multiply by 2 vectors: one int , one double */
- double multVecIntDouble(int *Vint , double *Vdouble, int nInt, int nDouble);
+double multVecIntDouble(int *Vint , double *Vdouble, int nInt, int nDouble);
 
- double calculateDeltaQ(int* s, Matrix* B);
+/* calculate dQ: by definition */
+double calculateDeltaQ(int* s, Matrix* B);
 
 /* finding eigenValue for the founded eigenVector and normalize it with norm */
 double calculateEiganValue(Matrix *C, double *v, double norm);
+
+/* create sub division vec from g,vec. subdiv contains {-1,0,1} */
+void updateSubDivision(int* g, int* subDiv, double* vec, int n, int* a, int* b);
 
 
 /* main calculation of modularity */

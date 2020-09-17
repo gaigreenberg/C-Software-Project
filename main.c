@@ -19,7 +19,9 @@
 
 
 /* read input and store in matrix, after allocation
- * closes input file*/
+ * storing matrix -> {n,A,K,kmFactor,norm}
+ * closes input file
+ * */
 void loadMatrix(FILE* input, Matrix* matrix, int n){
 
 	int i, r, k, *mask = (int*)calloc(n,sizeof(int));
@@ -52,7 +54,10 @@ void loadMatrix(FILE* input, Matrix* matrix, int n){
 
 }
 
-/* write partiton with maximized modularity*/
+/*
+ * write best-partiton of the graph (with maximized modularity)
+ * stored in div
+ * */
 void writeDivision(FILE* output, division* div){
 	int k, r, n=div->DivisionSize, *members;
 	groupCell *current = div->groups, *prev;
@@ -89,7 +94,6 @@ int main(int argc, char* argv[]) {
 	inMatrix  = fopen(argv[1],"r");
 	outputDiv = fopen(argv[2],"w");
 
-	/*read input matrix to sparse and store as Sparse Matrix */
 	fread(&n, 1 ,sizeof(int), inMatrix);
 	matrix = allocateMatrix(n);
 
@@ -100,30 +104,24 @@ int main(int argc, char* argv[]) {
 	setEmptyDivision(O);
 	setTrivialDivision(P,n);
 
-
 	Alogrithem3(matrix, n, O, P);
 	printf("\n>>\tAlgorithem 3 is Done [%.2f ms] \n", (double)current_time);
 
-	printf("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -");
-	printDivision(O, "final Div");
 	writeDivision(outputDiv,O);
-	printf("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -");
 
-	printf("\n\n>>\tMemory freeing section: [%.2f ms] \n", (double)current_time);
+	printf("\n>>\tWriting output is Done [%.2f ms] \n", (double)current_time);
 
 	/*free memory and finish program*/
 	freeMatrix(matrix);
 	fclose(inMatrix);
 	fclose(outputDiv);
+	printf("\n>>\tMemory freeing is Done: [%.2f ms] \n", (double)current_time);
 
-	/*printf("\nchecking output: \n");
-	checkOutPut(argv[2]);*/
-
-
+	printf("\n\n>>\tchecking output:\n");
+	checkOutPut(argv[2], n);
 
 	printf("\n\n>> >>   finished running [%.2fms]   << <<\n\n",(double)current_time);
-
-	return 0;
+	return EXIT_SUCCESS;
 }
 
 

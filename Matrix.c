@@ -10,12 +10,19 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-/* load info provided into the cell: column & data*/
+/*
+ * create a cell to be added sparse matrix
+ * */
 void makeCell (cell* cell, int column){
 	cell->col = column;
 	cell->nextCell = NULL;
 }
 
+/*generate matrix = A - N + D
+ * A   = sparse matrix
+ * Nij = ki*kj/M
+ * D   = unit matrix* NORM1
+ *   */
 
 /* Allocates a new linked-lists sparse matrix of size n */
 Matrix* allocateMatrix(int n){
@@ -54,13 +61,16 @@ void freeMatrix(Matrix *matrix){
 
 }
 
+/*
+ * create kmFactor
+ * that represents nxn size matrix together with K
+ */
 void createNmatrix(Matrix* matrix){
 	int j, M=matrix->M, *k=matrix->K;
 	for(j=0 ; j < matrix->n ; j++){
 		(matrix->kmFactor[j]) = (double)(k[j])/(M);
 	}
 }
-
 
 /* add row i to matrix A
  * row is represented as k size (int) array of Vi neighbors
@@ -74,31 +84,32 @@ void AddRow(Matrix *matrix, const int *newRow, int k, int i){
 
 	for (;j<k;++j){
 
-			newCell = (list)calloc(1,sizeof(cell));
-			if (newCell == NULL){
-				printf("error loading matrix, row:%d",i);
-				exit(EXIT_FAILURE);
-			}
-			makeCell(newCell, newRow[j]);
+		newCell = (list)calloc(1,sizeof(cell));
+		if (newCell == NULL){
+			printf("error loading matrix, row:%d",i);
+			exit(EXIT_FAILURE);
+		}
+		makeCell(newCell, newRow[j]);
+		if(firstElement){
+			current = newCell;
+			((list*)matrix->A)[i] = current;
+			firstElement = 0;
+			assert(((list*)matrix->A)[i]->nextCell == NULL);
+		}
 
-			if(firstElement){
-				current = newCell;
-				((list*)matrix->A)[i] = current;
-				firstElement = 0;
-				assert(((list*)matrix->A)[i]->nextCell == NULL);
-			}
-
-			else{
+		else{
 			current->nextCell = newCell;
 			assert(newCell->nextCell == NULL);
 			current = current->nextCell;
 			current->nextCell=NULL;
-			}
 		}
-
+	}
 }
 
-/*result = V1 -V2 +v3 */
+
+/* result = V1 - V2 + v3
+ * v1 = Av , v2 = Nv , c3=Dv
+ *  */
 void combineVectors(int n, double* v1, double* v2, double *v3, double* result){
 	int j;
 	for(j=0; j<n ; j++){
@@ -106,8 +117,13 @@ void combineVectors(int n, double* v1, double* v2, double *v3, double* result){
 	}
 }
 
-/*multiply matrix and double vector*/
 
+/*  multiply matrix and double vector  */
+
+
+/*
+ * multiply sparse matrix A and double vector according to g
+ * */
 void multSparseMatrix(const Matrix *matrix, const double *vector, double *result){
 	 int j, n=matrix->n, col;
 	 double dotproduct;
@@ -129,6 +145,10 @@ void multSparseMatrix(const Matrix *matrix, const double *vector, double *result
 	 }
  }
 
+/*
+ * multiply N matrix with douvle vector according to g
+ * N matrix is represent by K and kmFactor
+ * */
 void multNmatrix(const Matrix* matrix, const double *vector, double *result){
 	double *v1, dotProduct, Nij;
 	int i, j, *v2, n=matrix->n;
@@ -149,15 +169,22 @@ void multNmatrix(const Matrix* matrix, const double *vector, double *result){
 
 }
 
+/*
+ * multiply D matrix with douvle vector according to g
+ * Dv =norm1 x vec
+ * */
 void multUnitMatrix(const Matrix* matrix, const double *vector, double *result){
 	int j, n=matrix->n;
 
 	for(j=0; j<n ; j++){
 		result[j] = (matrix->filter[j])*(matrix->norm)*vector[j];
 	}
-
 }
 
+/*
+ * multiply matrix with double vector according to g
+ *  matrix = A - N + D
+ */
 void MultMatrix(const Matrix *matrix, const double *vector, double *result){
 	double *v1, *v2, *v3;
 	int n = matrix->n;
@@ -176,8 +203,13 @@ void MultMatrix(const Matrix *matrix, const double *vector, double *result){
 
 }
 
-/*multiply matrix and int vector*/
 
+/*  multiply matrix and int vector  */
+
+
+/*
+ * multiply sparse matrix A and int vector according to g
+ * */
 void multSparseMatrixInteger(const Matrix *matrix, const int *vector, double *result){
 	 int j, n=matrix->n, col;
 		 double dotproduct;
@@ -199,6 +231,10 @@ void multSparseMatrixInteger(const Matrix *matrix, const int *vector, double *re
 		 }
 	 }
 
+/*
+ * multiply N matrix with int vector according to g
+ * N matrix is represent by K and kmFactor
+ * */
 void multNmatrixInteger(const Matrix* matrix, const int *vector, double *result){
 	double *v1, dotProduct, Nij;
 	int i, j, *v2, n=matrix->n;
@@ -219,6 +255,10 @@ void multNmatrixInteger(const Matrix* matrix, const int *vector, double *result)
 	}
 }
 
+/*
+ * multiply D matrix with douvle int according to g
+ * Dv =norm1 x vec
+ * */
 void multUnitMatrixInteger(const Matrix* matrix, const int *vector, double *result){
 	int j, n=matrix->n;
 
@@ -228,6 +268,10 @@ void multUnitMatrixInteger(const Matrix* matrix, const int *vector, double *resu
 
 }
 
+/*
+ * multiply matrix with int vector according to g
+ *  matrix = A - N + D
+ */
 void MultMatrixInteger(const Matrix *matrix, const int *vector, double *result){
 	double *v1, *v2, *v3;
 	int n = matrix->n;

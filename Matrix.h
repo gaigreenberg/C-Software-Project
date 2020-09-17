@@ -3,27 +3,28 @@
 
 #include "CheckingAlgorithems.h"
 
-
+/* no value in cell because all values are 1*/
 typedef struct cell{
 	 int col;
 	 struct cell* nextCell ;
 }cell;
+
+/* a list is a pointer to cell */
 typedef cell* list;
 
 typedef struct _Matrix {
-	/* Matrix size (n*n) */
-	int		n;
-	int		M;
-	double 	norm;
 
-	list*	A;
+	int		n; 		/* number of vertices in graph - |V| */
+	int		M; 		/* number if edges in graph - |E| */
+	double 	norm;	/* NORM1 of BG with trivial g */
 
-	/* K[j] is the degree of node j
-	 * kmFactor[j] = K[j]/M */
-	int* K;
-	double* kmFactor;
+	list*	A;		/*sparse matrix A from input */
 
-	int* filter;
+
+	int* K;				/* degrees vector of nodes:    k[j] = degree(vj) */
+	double* kmFactor;	/* normalized degrees:	kmFactor[j] = degree(vj)/M */
+
+	int* filter;		/* current subgroup of vertices as {0,1}^n */
 
 } Matrix;
 
@@ -31,18 +32,6 @@ typedef struct _Matrix {
 
 /* load info provided into the cell: column & data*/
 void makeCell (cell* cell, int column);
-
-/* copy cell information to another cell */
-void CopyCell (list origin , list copy);
-
-/* make a deep-copied list */
-list CopyList(list old);
-
-/* make a deep-copied list */
-list CopyListFiltered(list old, int* filter);
-/*new method's functions */
-
-
 
 
 /* Allocates a new linked-lists sparse matrix of size n */
@@ -65,22 +54,55 @@ void combineVectors(int n, double* v1, double* v2, double *v3, double* result);
 
 /*multiply matrix and double vector*/
 
+
+/*
+ * multiply sparse matrix A and double vector according to g
+ * */
 void multSparseMatrix(const Matrix *matrix, const double *vector, double *result);
 
+/*
+ * multiply N matrix with douvle vector according to g
+ * N matrix is represent by K and kmFactor
+ * */
 void multNmatrix(const Matrix *matrix, const double *vector, double *result);
 
+/*
+ * multiply D matrix with douvle vector according to g
+ * Dv =norm1 x vec
+ * */
 void multUnitMatrix(const Matrix *matrix, const double *vector, double *result);
 
+/*
+ * multiply matrix with double vector according to g
+ *  matrix = A - N + D
+ */
 void MultMatrix(const Matrix *matrix, const double *vector, double *result);
+
 
 /*multiply matrix and int vector*/
 
+
+/*
+ * multiply sparse matrix A and int vector according to g
+ * */
 void multSparseMatrixInteger(const Matrix *matrix, const int *vector, double *result);
 
+/*
+ * multiply N matrix with int vector according to g
+ * N matrix is represent by K and kmFactor
+ * */
 void multNmatrixInteger(const Matrix *matrix, const int *vector, double *result);
 
+/*
+ * multiply D matrix with douvle int according to g
+ * Dv =norm1 x vec
+ * */
 void multUnitMatrixInteger(const Matrix *matrix, const int *vector, double *result);
 
+/*
+ * multiply matrix with int vector according to g
+ *  matrix = A - N + D
+ */
 void MultMatrixInteger(const Matrix *matrix, const int *vector, double *result);
 
 #endif

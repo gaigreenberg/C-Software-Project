@@ -31,7 +31,7 @@ void printIntVector(int* vector, int n,char* name);
 void printGraph(FILE* input, int n);
 
 /*prints output file - shpuld be completly written before*/
-void checkOutPut(char *path);
+void checkOutPut(char *path, int n);
 
 
 #endif /* CHECKINGALGORITHEMS_H_ */

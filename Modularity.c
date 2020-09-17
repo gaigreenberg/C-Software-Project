@@ -6,7 +6,7 @@
 #include "math.h"
 
 
-/* calculating the norm-1 of spmat C */
+/* calculating the norm-1 of matrix and store in matrix->norm*/
 void calculateMatrixNorm(Matrix *matrix){
 	 int i, j,nextCellIndex=-1, n = matrix->n;
 	 double max, value, Nij;
@@ -47,7 +47,7 @@ void calculateMatrixNorm(Matrix *matrix){
 
  }
 
-/* calculate multiply by 2 vectors */
+/* calculate multiply of 2 vectors */
 double multiplyVectors(double *v1 , double *v2, int n1, int n2){
 	 double sum = 0.0;
 	 int i;
@@ -56,7 +56,7 @@ double multiplyVectors(double *v1 , double *v2, int n1, int n2){
 		 printf("\nvec's size's dont match");
 		 exit(EXIT_FAILURE);
 	 }
-	 for(i=0;i<n1;++i){
+	 for(i=0 ; i<n1 ; ++i){
 		 sum += (v1[i]*v2[i]);
 	 }
 	 return sum;
@@ -77,7 +77,7 @@ double multVecIntDouble(int *Vint , double *Vdouble, int nInt , int nDouble){
 	 return sum;
 }
 
-/* calculate Q: by definition */
+/* calculate dQ: by definition */
 double calculateDeltaQ(int* s, Matrix* matrix){
 	double result, *temp = (double*)calloc(matrix->n,sizeof(double));
 	MultMatrixInteger(matrix,s,temp);
@@ -99,21 +99,34 @@ double calculateEiganValue(Matrix *C, double *v, double norm){
 	denominator = multiplyVectors(v, v, n, n);	/* den = v*v */
 	value = numerator/denominator;
 	value = value - norm;
-	/*printf("\t->eigen =%f \n", value);
-	printVector(v,n,"V");
-	printVector(Cv,n,"Cv");
-	printIntVector(C->filter,n,"g");*/
+
 	free(Cv);
 	return value;
 }
 
+/* create sub division vec from g,vec. subdiv contains {-1,0,1} */
+void updateSubDivision(int* g, int* subDiv, double* vec, int n, int* a, int* b){
+	int j;
+	for(j=0; j<n ; j++){
+			if(negative(vec[j])){
+				subDiv[j] = -1*g[j];
+				++(*a);
+
+			}else if(positive(vec[j])){
+				subDiv[j] = 1*g[j];
+				++(*b);
+			}else{
+				subDiv[j]=0;
+			}
+
+	}
+}
 
 /* main calculation of modularity */
 
 /*B should be created before, Bg,subDivision should be allocated before*/
 int Alogrithem2(Matrix* matrix, int* subDiv, int* g, int n, int* a, int* b){
 	double value, *vec, *nextVec, dQ;
-	int j;
 
 	matrix -> filter = g;
 
@@ -124,34 +137,20 @@ int Alogrithem2(Matrix* matrix, int* subDiv, int* g, int n, int* a, int* b){
 
 	vec = (double*)calloc(n, sizeof(double));
 	nextVec = (double*)calloc(n,sizeof(double));
-	/*printIntVector(matrix->filter,n,"g");*/
+
 	powerIteration(matrix,vec,nextVec,n);
 	value = calculateEiganValue(matrix,vec,matrix->norm);
 
 	if (value <=0){
 		return 0;
 	}
-
-	for(j=0; j<n ; j++){
-		if(vec[j]<0){
-			subDiv[j] = -1*g[j];
-			++(*a);
-
-		}else if(vec[j] > 0){
-			subDiv[j] = 1*g[j];
-			++(*b);
-		}else{
-			subDiv[j]=0;
-		}
-
-	}
-
+	updateSubDivision(g, subDiv, vec, n, a, b);
 
 	dQ = calculateDeltaQ(subDiv, matrix);
-	/*printf("dQ = %.2f\n",Q);*/
 	if(dQ < 0){
 		return 0;
 	}
+
 	free(nextVec);
 	free(vec);
 	return 1;

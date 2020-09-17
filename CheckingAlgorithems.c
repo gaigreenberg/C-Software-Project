@@ -78,17 +78,17 @@ void printGraph(FILE* input, int n){
 }
 
 /*prints output file - shpuld be completly written before*/
-void checkOutPut(char *path){
+void checkOutPut(char *path, int n){
 	FILE* out = fopen(path,"r");
-	int n, r, j, i, d; int* indices;
-
-	r = fread(&n, sizeof(int), 1, out);
-	REC(__FUNCTION__, r,1,1);
+	int divSize, r, j, i, d; int* indices;
 
 	indices = (int*)calloc(n,sizeof(int));
-	printf("there are %d groups in the division:",n);
+	r = fread(&divSize, sizeof(int), 1, out);
+	REC(__FUNCTION__, r,1,1);
 
-	for(j=0; j<n;j++){
+	printf("there are %d groups in the division:",divSize);
+
+	for(j=0; j<divSize;j++){
 		r = fread(&d,sizeof(int),1,out);
 		REC(__FUNCTION__, r, 1, 2);
 
@@ -101,6 +101,7 @@ void checkOutPut(char *path){
 		}
 	}
 	fclose(out);
+	free(indices);
 
 
 

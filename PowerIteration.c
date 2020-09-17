@@ -55,7 +55,7 @@ int epsilonCheck(double *currVec , double *nextVec, int size){	/* calculating  t
 }
 
 /*
- * divides the vector by its magnitude
+ * divides the vector by magnitude
  */
 void normalizeVector(double *vec , double mag , int size ) {
 	int i;
@@ -78,8 +78,8 @@ void powerIteration(Matrix* matrix,double* vec, double* nextVec, int n ){
 		magnitude = computeMagnitude(nextVec,n);
 		normalizeVector(nextVec,magnitude,n);
 
-		if(iter == 1000*n){
-			printf("\n break loop %d iterations\n",iter);
+		if(iter == 1000*n + 1000){
+			printf("\n break loop in %s after %d iterations\n",__FUNCTION__, iter);
 			keepRunning  = 1;
 		}
 
