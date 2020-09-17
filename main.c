@@ -27,18 +27,18 @@ void loadMatrix(FILE* input, Matrix* matrix, int n){
 	rewind(input);
 	r = fread(&n, sizeof(int), 1, input);
 	/*printf("|V| = %d\n",n);*/
-	(REC(r,1,1));		/*errror 1*/
+	REC(__FUNCTION__, r,1,1);		/*errror 1*/
 
 	for (i=0; i<n; i++){
 		r = fread(&k, sizeof(int), 1, input); /*read Ki*/
-		REC(r, 1, 2); /*error 2*/
+		REC(__FUNCTION__, r, 1, 2); /*error 2*/
 
 		(matrix->K)[i]=k;
 		matrix->M +=k;
 
 		if(k>0){
 			r = fread(mask, sizeof(int), k, input);
-			REC(r, k, 3); /*error 3*/
+			REC(__FUNCTION__, r, k, 3); /*error 3*/
 
 			AddRow(matrix , mask, k, i);
 		}
@@ -54,24 +54,24 @@ void loadMatrix(FILE* input, Matrix* matrix, int n){
 
 /* write partiton with maximized modularity*/
 void writeDivision(FILE* output, division* div){
-	int k, r, n=div->DivisionSize;
+	int k, r, n=div->DivisionSize, *members;
 	groupCell *current = div->groups, *prev;
 
 	r = fwrite(&n, sizeof(int), 1 , output);
-	REC(r,1,1);
+	REC(__FUNCTION__, r,1,1);
 
 	while(current != NULL){
 		k = current->groupSize;
+		members = current->group;
 		r = fwrite(&k, sizeof(int), 1, output);
-		REC(r,1,2);
-		r = fwrite((current->group), sizeof(int), k, output);
-		REC(r,k,3);
+		REC(__FUNCTION__, r,1,2);
+		r = fwrite(members, sizeof(int), k, output);
+		REC(__FUNCTION__, r,k,3);
 		prev = current;
 		current = current->nextGroup;
 		freeGroupCell(prev);
-
 	}
-	fclose(output);
+	free(div);
 
 }
 
@@ -80,8 +80,10 @@ int main(int argc, char* argv[]) {
 	FILE *inMatrix, *outputDiv;
 	Matrix *matrix;
 	division *O = allocateDivision, *P = allocateDivision /*, *test=allocateDivision*/;
+	clock_t current_time;
 	int n;
 
+	current_time = clock();
 	(checkArgc(argc));
 	srand(time(NULL));
 	inMatrix  = fopen(argv[1],"r");
@@ -93,28 +95,34 @@ int main(int argc, char* argv[]) {
 
 	loadMatrix(inMatrix,matrix,n);
 
-	printf("\n\t ~~ loading Graph Complete ~~\n\n");
+	printf("\n>>\tloading Graph Complete [%.2f ms] \n", (double)current_time);
 
 	setEmptyDivision(O);
 	setTrivialDivision(P,n);
 
 
 	Alogrithem3(matrix, n, O, P);
-	printf("\n Algorithem 3 is Done\n_________________________________________________________________________________________________________\n");
+	printf("\n>>\tAlgorithem 3 is Done [%.2f ms] \n", (double)current_time);
 
+	printf("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -");
+	printDivision(O, "final Div");
 	writeDivision(outputDiv,O);
+	printf("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -");
 
-	/*free memory and finish program
-	free(inMatrix);
-	free(outputDiv);
-	freeDivision(O);
-	freeDivision(P);
-	freeMatrix(Bg);
-	freeMatrix(A);*/
-	printf("\n\n ~~~ ~~ ~ finished running successfully ~ ~~ ~~~");
+	printf("\n\n>>\tMemory freeing section: [%.2f ms] \n", (double)current_time);
 
-	printf("\nchecking output: \n");
-	printDivisionFile(argv[2]);
+	/*free memory and finish program*/
+	freeMatrix(matrix);
+	fclose(inMatrix);
+	fclose(outputDiv);
+
+	/*printf("\nchecking output: \n");
+	checkOutPut(argv[2]);*/
+
+
+
+	printf("\n\n>> >>   finished running [%.2fms]   << <<\n\n",(double)current_time);
+
 	return 0;
 }
 

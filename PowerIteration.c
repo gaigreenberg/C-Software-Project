@@ -66,36 +66,34 @@ void normalizeVector(double *vec , double mag , int size ) {
 }
 
 /* organized fuction to generate C' power iteration (self vector into vec) */
-void powerIteration(Matrix* matrix,double* vec,int n ){
-	int iter = 0,keepRunning = 1;
-	double *nextVec, magnitude;
+void powerIteration(Matrix* matrix,double* vec, double* nextVec, int n ){
+	int iter = 0,keepRunning = 1,j;
+	double magnitude;
 
 	generateRandomVec(vec,n);
 	do{
-		nextVec = (double*)calloc(n,sizeof(double));
+		/* nextVec = (double*)calloc(n,sizeof(double));*/
 		iter++;
-
 		MultMatrix(matrix,vec,nextVec);
 		magnitude = computeMagnitude(nextVec,n);
 		normalizeVector(nextVec,magnitude,n);
 
-		if(iter == 1000){
+		if(iter == 1000*n){
 			printf("\n break loop %d iterations\n",iter);
 			keepRunning  = 1;
 		}
 
 		if(epsilonCheck(vec,nextVec,n) == 0){
-			free(vec);
-			vec = nextVec;
+			for(j=0; j<n ; j++){
+				vec[j] = nextVec[j];
+			}
 		}else{
 			keepRunning = 0;
 		}
 
-
 	}while (keepRunning);
-	/*printf("power iteration took %d iterations\n",iter);*/
 
-	/*free(nextVec);*/
+	/*printf("power iteration took %d iterations\n",iter);*/
 	}
 
 

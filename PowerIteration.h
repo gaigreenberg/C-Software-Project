@@ -26,6 +26,6 @@ int epsilonCheck(double *currVec , double *nextVec, int size);
 void normalizeVector(double *vec , double mag , int size );
 
 /* organized fuction to generate C' power iteration (self vector into vec) */
-void powerIteration(Matrix* C,double* vec,int n );
+void powerIteration(Matrix* C,double* vec, double* nextVec, int n );
 
 #endif /* POWERITERATION_H_ */

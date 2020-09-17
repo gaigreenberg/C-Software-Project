@@ -41,10 +41,10 @@ void calculateMatrixNorm(Matrix *matrix){
 			 max = colls[i];
 		 }
 	 }
-	 printVector(colls, n, "\nmatrix columns sums:");
-	 printf("Norm1 = %f\n", max);
-	 free(colls);
+	 /*printVector(colls, n, "\nmatrix columns sums:");*/
 	 matrix->norm = max;
+	 free(colls);
+
  }
 
 /* calculate multiply by 2 vectors */
@@ -82,6 +82,7 @@ double calculateDeltaQ(int* s, Matrix* matrix){
 	double result, *temp = (double*)calloc(matrix->n,sizeof(double));
 	MultMatrixInteger(matrix,s,temp);
 	result = multVecIntDouble(s,temp, matrix->n,matrix->n);
+	free(temp);
 	return (result*0.5);
 
 
@@ -98,7 +99,10 @@ double calculateEiganValue(Matrix *C, double *v, double norm){
 	denominator = multiplyVectors(v, v, n, n);	/* den = v*v */
 	value = numerator/denominator;
 	value = value - norm;
-
+	/*printf("\t->eigen =%f \n", value);
+	printVector(v,n,"V");
+	printVector(Cv,n,"Cv");
+	printIntVector(C->filter,n,"g");*/
 	free(Cv);
 	return value;
 }
@@ -108,7 +112,7 @@ double calculateEiganValue(Matrix *C, double *v, double norm){
 
 /*B should be created before, Bg,subDivision should be allocated before*/
 int Alogrithem2(Matrix* matrix, int* subDiv, int* g, int n, int* a, int* b){
-	double value, *vec, Q;
+	double value, *vec, *nextVec, dQ;
 	int j;
 
 	matrix -> filter = g;
@@ -117,9 +121,11 @@ int Alogrithem2(Matrix* matrix, int* subDiv, int* g, int n, int* a, int* b){
 		printf("probelm reseting a,b");
 		forceStop(__FUNCTION__, __LINE__);
 	}
-	vec = (double*)calloc(n, sizeof(double));
 
-	powerIteration(matrix,vec,n);
+	vec = (double*)calloc(n, sizeof(double));
+	nextVec = (double*)calloc(n,sizeof(double));
+	/*printIntVector(matrix->filter,n,"g");*/
+	powerIteration(matrix,vec,nextVec,n);
 	value = calculateEiganValue(matrix,vec,matrix->norm);
 
 	if (value <=0){
@@ -141,12 +147,12 @@ int Alogrithem2(Matrix* matrix, int* subDiv, int* g, int n, int* a, int* b){
 	}
 
 
-	Q = calculateDeltaQ(subDiv, matrix);
+	dQ = calculateDeltaQ(subDiv, matrix);
 	/*printf("dQ = %.2f\n",Q);*/
-	if(Q < 0){
+	if(dQ < 0){
 		return 0;
 	}
-
+	free(nextVec);
 	free(vec);
 	return 1;
 }
@@ -161,17 +167,13 @@ void Alogrithem3(Matrix* matrix, int n, division* O, division* P){
 	/*printf("\nA3: Entering loop:\n");*/
 
 	while (P->DivisionSize > 0){
-		printf("\n #%d\n",breaker);
 
 		a = 0 ; b = 0;
 		removeG(P, g, n); /* what to doo?? */;
-		/*printIntVector(g, n, "g");*/
 		divideable = Alogrithem2(matrix, subDiv,g,n,&a,&b );
-		/*printIntVector(subDiv,n,"subDiv");*/
 		A=cg ; B=cg ;
 		if(divideable){
 			breaker++;
-
 			subDividedBySubdiviosion(A,B, subDiv,n, a, b);
 			reOrder(P,O,A,B);
 
@@ -182,10 +184,17 @@ void Alogrithem3(Matrix* matrix, int n, division* O, division* P){
 			}
 		}
 		else{
+			/*printf("\nUDA->");*/
 			CreateGroupCell(A, n, g);
 			add(O,A);
+			freeGroupCell(B);
+			B = NULL;
 		}
 	}
+	free(subDiv);
+	free(g);
+	freeDivision(P);
+
 }
 
 /*Algorithem 4*/

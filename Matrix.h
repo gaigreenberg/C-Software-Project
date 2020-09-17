@@ -6,7 +6,6 @@
 
 typedef struct cell{
 	 int col;
-	 double value;
 	 struct cell* nextCell ;
 }cell;
 typedef cell* list;
@@ -31,7 +30,7 @@ typedef struct _Matrix {
 
 
 /* load info provided into the cell: column & data*/
-void makeCell (cell* cell, int column, double data);
+void makeCell (cell* cell, int column);
 
 /* copy cell information to another cell */
 void CopyCell (list origin , list copy);

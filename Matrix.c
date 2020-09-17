@@ -11,80 +11,9 @@
 #include <stdlib.h>
 
 /* load info provided into the cell: column & data*/
-void makeCell (cell* cell, int column, double data){
+void makeCell (cell* cell, int column){
 	cell->col = column;
-	cell->value = data;
 	cell->nextCell = NULL;
-}
-
-/* copy cell information to another cell */
-void CopyCell (list origin , list copy){
-	if(origin == NULL){
-		copy = NULL;
-		return;
-	}
-	copy->col 		= origin->col;
-	copy->value 	= origin->value;
-	copy->nextCell 	= origin->nextCell;
-}
-
-/* make a deep-copied list */
-list CopyList(list old){
-	list newList=NULL , current = old, temp;
-	int first = 1;
-	list copy = (list)calloc (1, sizeof(cell));
-
-	if (old == NULL){
-		free(copy);
-		return NULL;
-	}
-	while (current != NULL){
-		if (first){
-			CopyCell(current, newList);
-			first = 0;
-			current = current->nextCell;
-			temp=newList;
-		}
-		else{
-			CopyCell(current, copy);
-			temp->nextCell = copy;
-			temp = temp->nextCell;
-			current = current->nextCell;
-		}
-	}
-
-	return newList;
-
-
-}
-
-/* make a deep-copied list */
-list CopyListFiltered(list old, int* filter){
-	list newList=NULL , current = old, temp;
-	int first = 1;
-	list copy = (list)calloc (1, sizeof(cell));
-
-	if (old == NULL){
-		free(copy);
-		return NULL;
-	}
-	while (current != NULL){
-		if(filter[current->col] == 1){
-			if (first){
-				CopyCell(current, newList);
-				first = 0;
-				temp=newList;
-			}
-			else{
-				CopyCell(current, copy);
-				temp->nextCell = copy;
-				temp = temp->nextCell;
-			}
-		}
-		current = current->nextCell;
-
-	}
-	return newList;
 }
 
 
@@ -97,18 +26,6 @@ Matrix* allocateMatrix(int n){
 	 matrix->K = (int*) calloc (n, sizeof(int));
 	 matrix->kmFactor = (double*) calloc(n,sizeof(double));
 
-	 if(&matrix->n == NULL){
-		 free (matrix);
-		 return NULL;
-	 }
-	 if(matrix->A == NULL){
-		 free (matrix);
-		 return NULL;
-	 }
-	 if(matrix->K == NULL){
-		 free (matrix);
-		 return NULL;
-	 }
 	 return matrix;
 }
 
@@ -117,15 +34,22 @@ void freeMatrix(Matrix *matrix){
 	 int j=0, n=matrix->n;
 	 list current,previous;
 	 for (;j<n;++j){
-		 current = ((list*)(matrix->A))[j];
+		 current = (matrix->A)[j];
+		 previous = current;
 		 while (current != NULL){
 			 previous = current;
 			 current = current->nextCell;
+			 free(previous);
+			 previous = NULL;
+		 }
+		 if((previous != NULL)){
+			 printf("missed one cell in%s",__FUNCTION__);
 			 free(previous);
 		 }
 	 }
 	 free(matrix->K);
 	 free(matrix->kmFactor);
+	 free(matrix->A);
 	 free(matrix);
 
 }
@@ -147,22 +71,23 @@ void AddRow(Matrix *matrix, const int *newRow, int k, int i){
 	list current,newCell;
 
 	((list*)matrix->A)[i] = NULL;
-	current = (list)calloc(1,sizeof(cell));
 
 	for (;j<k;++j){
 
 			newCell = (list)calloc(1,sizeof(cell));
-			if (newCell == NULL || current == NULL){
-				freeMatrix(matrix);
-				}
-			makeCell(newCell, newRow[j], 1.0);
-			assert(newCell->nextCell == NULL);
+			if (newCell == NULL){
+				printf("error loading matrix, row:%d",i);
+				exit(EXIT_FAILURE);
+			}
+			makeCell(newCell, newRow[j]);
+
 			if(firstElement){
 				current = newCell;
 				((list*)matrix->A)[i] = current;
 				firstElement = 0;
 				assert(((list*)matrix->A)[i]->nextCell == NULL);
 			}
+
 			else{
 			current->nextCell = newCell;
 			assert(newCell->nextCell == NULL);
@@ -185,17 +110,16 @@ void combineVectors(int n, double* v1, double* v2, double *v3, double* result){
 
 void multSparseMatrix(const Matrix *matrix, const double *vector, double *result){
 	 int j, n=matrix->n, col;
-	 double data, dotproduct;
+	 double dotproduct;
 	 list current;
 	 for (j=0;j<n;++j){
-		 dotproduct = 0.0;
+		 dotproduct = (double) 0;
 		 if(matrix->filter[j]){
 			 current = ((matrix->A))[j];
 			 while (current != NULL){
 				 col = current->col;
 				 if(matrix->filter[col]){
-					 data = current->value;
-					 dotproduct += data * vector[col];
+					 dotproduct += vector[col];
 				 }
 				 current = current->nextCell;
 			 }
@@ -241,6 +165,7 @@ void MultMatrix(const Matrix *matrix, const double *vector, double *result){
 	v2 = (double*)calloc(n,sizeof(double));
 	v3 = (double*)calloc(n,sizeof(double));
 
+	/*printIntVector(matrix->filter,n,"g");*/
 	multSparseMatrix(matrix, vector, v1);
 	multNmatrix(matrix,vector,v2);
 	multUnitMatrix(matrix, vector, v3);
@@ -255,7 +180,7 @@ void MultMatrix(const Matrix *matrix, const double *vector, double *result){
 
 void multSparseMatrixInteger(const Matrix *matrix, const int *vector, double *result){
 	 int j, n=matrix->n, col;
-		 double data, dotproduct;
+		 double dotproduct;
 		 list current;
 		 for (j=0;j<n;++j){
 			 dotproduct = 0.0;
@@ -264,8 +189,7 @@ void multSparseMatrixInteger(const Matrix *matrix, const int *vector, double *re
 				 while (current != NULL){
 					 col = current->col;
 					 if(matrix->filter[col]){
-						 data = current->value;
-						 dotproduct += data * vector[col];
+						dotproduct += (double)vector[col];
 					 }
 					 current = current->nextCell;
 				 }
@@ -299,7 +223,6 @@ void multUnitMatrixInteger(const Matrix* matrix, const int *vector, double *resu
 	int j, n=matrix->n;
 
 	for(j=0; j<n ; j++){
-
 		result[j] = (matrix->filter[j])*(matrix->norm)*vector[j];
 	}
 

@@ -23,9 +23,9 @@ void checkArgc(int argc){
 }
 
 /*check if fread & fwrite finished as expected*/
-void REC(int actual, int expected, int errorNum){
+void REC(const char* func, int actual, int expected, int errorNum){
 	if(actual != (expected)){
-		printf("error in loadMatrix #%d \t",errorNum);
+		printf("error in %s #%d \t",func, errorNum);
 		printf("actual = %d, expected =%d \n ", actual, expected);
 		exit(EXIT_FAILURE);
 	}
@@ -78,26 +78,32 @@ void printGraph(FILE* input, int n){
 }
 
 /*prints output file - shpuld be completly written before*/
-void printDivisionFile(char *outPutFile){
-	FILE* out = fopen(outPutFile,"r");
-	int n, r, j, i, d, *indices;
+void checkOutPut(char *path){
+	FILE* out = fopen(path,"r");
+	int n, r, j, i, d; int* indices;
+
 	r = fread(&n, sizeof(int), 1, out);
-	REC(r,1,1);
+	REC(__FUNCTION__, r,1,1);
 
 	indices = (int*)calloc(n,sizeof(int));
 	printf("there are %d groups in the division:",n);
 
 	for(j=0; j<n;j++){
 		r = fread(&d,sizeof(int),1,out);
-		REC(r, 1, 2);
-		fread(indices,sizeof(int),d,out);
-		REC(r, d, 3);
+		REC(__FUNCTION__, r, 1, 2);
+
+		r = fread(indices,sizeof(int),d,out);
+		REC(__FUNCTION__, r, d, 3);
 		printf("\ngroup #%d has %d nodes:\n\t ",j+1,d);
+
 		for(i=0; i<d; i++){
 			printf("%d,",indices[i]);
 		}
 	}
-	free(indices);
+	fclose(out);
+
+
+
 
 }
 
