@@ -10,6 +10,7 @@
 	void CreateGroupCell(groupCell* A, int n, int* g){
 		int j,i=0;
 		int* members = (int*)calloc(n, sizeof(int));
+		checkAllocation(members, __FUNCTION__, __LINE__-1);
 		for(j=0; j<n ;j++){
 			if(g[j] == 1){
 				members[i] = j;
@@ -17,6 +18,7 @@
 			}
 		}
 		members = (int*)realloc(members, i*sizeof(int));
+
 		A->groupSize = i;
 		A->group= members;
 		A->nextGroup = NULL;
@@ -26,9 +28,13 @@
 	 * set div as a division with all numbers from 0 to n-1
 	 * */
 	void setTrivialDivision(division* div, int n){
-		groupList cell = (groupList)calloc(1,sizeof(groupCell));
 		int i;
-		int* trivial = (int*)(calloc(n,sizeof(int)));
+		int* trivial;
+		groupList cell = (groupList)calloc(1,sizeof(groupCell));
+		checkAllocation(cell, __FUNCTION__, __LINE__-1);
+		trivial = (int*)(calloc(n,sizeof(int)));
+		checkAllocation(trivial, __FUNCTION__, __LINE__-1);
+
 		for (i=0; i<n; i++){
 			trivial[i] = i;
 		}
@@ -129,8 +135,11 @@
 	void subDividedBySubdiviosion(groupCell* A, groupCell* B, int* subDivision, int n, int a, int b){
 
 		int j, x=0, y=0;
-		int *groupA = (int*) calloc(a,sizeof(int));
-		int *groupB = (int*) calloc(b,sizeof(int));
+		int *groupA, *groupB;
+		groupA = (int*) calloc(a,sizeof(int));
+		checkAllocation(groupA, __FUNCTION__, __LINE__-1);
+		groupB = (int*) calloc(b,sizeof(int));
+		checkAllocation(groupA, __FUNCTION__, __LINE__-1);
 
 		A->groupSize = a; B->groupSize = b;
 		for (j=0; j<n; j++){

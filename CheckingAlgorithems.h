@@ -10,6 +10,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stddef.h>
 /*force program to stop & print where is stopped
  * forceStop(__FUNCTION__ , __LINE__ )
  * */
@@ -18,8 +19,19 @@ void forceStop( const char* func,const int line);
 /*check if argc == 3*/
 void checkArgc(int argc);
 
+/*
+ * check if there are edges in the graph
+ * */
+void checkM(int M);
+
 /*check if fread & fwrite finished as expected*/
 void REC(const char* func, int actual, int expected, int errorNum);
+
+/*
+ * check the memory was aloocated
+ * checkAllocation(ptr, __FUNCTION__, __LINE__-1);
+ *  */
+void checkAllocation(void* pointer, const char* func, int line );
 
 /*print douvle vector*/
 void printVector(double* vector, int n,char* name);

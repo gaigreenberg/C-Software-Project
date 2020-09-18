@@ -25,7 +25,7 @@
 void loadMatrix(FILE* input, Matrix* matrix, int n){
 
 	int i, r, k, *mask = (int*)calloc(n,sizeof(int));
-
+	checkAllocation(mask, __FUNCTION__, __LINE__-1);
 	rewind(input);
 	r = fread(&n, sizeof(int), 1, input);
 	/*printf("|V| = %d\n",n);*/
@@ -45,7 +45,7 @@ void loadMatrix(FILE* input, Matrix* matrix, int n){
 			AddRow(matrix , mask, k, i);
 		}
 	}
-
+	checkM(matrix->M);
 	createNmatrix(matrix);
 	calculateMatrixNorm(matrix);
 
@@ -84,11 +84,12 @@ void writeDivision(FILE* output, division* div){
 int main(int argc, char* argv[]) {
 	FILE *inMatrix, *outputDiv;
 	Matrix *matrix;
-	division *O = allocateDivision, *P = allocateDivision /*, *test=allocateDivision*/;
+	division *O = allocateDivision, *P = allocateDivision /* allocate Divisions*/;
 	clock_t current_time;
 	int n;
+	checkAllocation(P, __FUNCTION__, __LINE__-1); checkAllocation(O, __FUNCTION__, __LINE__-1);
 
-	current_time = clock();
+
 	(checkArgc(argc));
 	srand(time(NULL));
 	inMatrix  = fopen(argv[1],"r");
@@ -99,28 +100,31 @@ int main(int argc, char* argv[]) {
 
 	loadMatrix(inMatrix,matrix,n);
 
-	printf("\n>>\tloading Graph Complete [%.2f ms] \n", (double)current_time);
+	current_time = clock();
+	printf("\n>>\tloading Graph Complete [%.0f ms] \n", (double)current_time);
 
 	setEmptyDivision(O);
 	setTrivialDivision(P,n);
 
 	Alogrithem3(matrix, n, O, P);
-	printf("\n>>\tAlgorithem 3 is Done [%.2f ms] \n", (double)current_time);
+	current_time = clock();
+	printf("\n>>\tAlgorithem 3 is Done [%.0f ms] \n", (double)current_time);
 
 	writeDivision(outputDiv,O);
-
-	printf("\n>>\tWriting output is Done [%.2f ms] \n", (double)current_time);
+	current_time = clock();
+	printf("\n>>\tWriting output is Done [%.0f ms] \n", (double)current_time);
 
 	/*free memory and finish program*/
 	freeMatrix(matrix);
 	fclose(inMatrix);
 	fclose(outputDiv);
-	printf("\n>>\tMemory freeing is Done: [%.2f ms] \n", (double)current_time);
+/*	printf("\n>>\tMemory freeing is Done: [%.2f ms] \n", (double)current_time);
 
 	printf("\n\n>>\tchecking output:\n");
 	checkOutPut(argv[2], n);
-
-	printf("\n\n>> >>   finished running [%.2fms]   << <<\n\n",(double)current_time);
+*/
+	current_time = clock();
+	printf("\n>> >>   finished running [%.0fms]   << <<\n\n",(double)current_time);
 	return EXIT_SUCCESS;
 }
 

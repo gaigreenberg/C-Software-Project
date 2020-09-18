@@ -18,6 +18,17 @@ void forceStop( const char* func,const int line){
 /*check if argc == 3*/
 void checkArgc(int argc){
 	if (argc != 3){
+		printf("arguments don't match");
+		exit(EXIT_FAILURE);
+	}
+}
+
+/*
+ * check if there are edges in the graph
+ * */
+void checkM(int M){
+	if (M==0){
+		printf("no edges in graph\n");
 		exit(EXIT_FAILURE);
 	}
 }
@@ -29,6 +40,18 @@ void REC(const char* func, int actual, int expected, int errorNum){
 		printf("actual = %d, expected =%d \n ", actual, expected);
 		exit(EXIT_FAILURE);
 	}
+}
+
+/*
+ * exit running if pointer is NULL after allocation
+ * checkAllocation(ptr, __FUNCTION__, __LINE__-1);
+ * */
+void checkAllocation(void* pointer, const char* func, int line ){
+	if (pointer == NULL){
+		printf("pointer is NULL after allocation @%s, line %d", func, line);
+		exit(EXIT_FAILURE);
+	}
+
 }
 
 /*visualise information*/
@@ -54,7 +77,6 @@ void printIntVector(int* vector, int n,char* name){
 	}
 	printf("}\n");
 }
-
 
 /*prints input file*/
 void printGraph(FILE* input, int n){

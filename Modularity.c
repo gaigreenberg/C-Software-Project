@@ -10,8 +10,10 @@
 void calculateMatrixNorm(Matrix *matrix){
 	 int i, j,nextCellIndex=-1, n = matrix->n;
 	 double max, value, Nij;
-	 double* colls = (double*)calloc(n,sizeof(double));
 	 list current;
+	 double* colls = (double*)calloc(n,sizeof(double));
+	checkAllocation(colls, __FUNCTION__, __LINE__-1);
+
 
 	for (i = 0; i < n; ++i) {
 		current = matrix->A[i];
@@ -78,11 +80,13 @@ double multVecIntDouble(int *Vint , double *Vdouble, int nInt , int nDouble){
 }
 
 /* calculate dQ: by definition */
-double calculateDeltaQ(int* s, Matrix* matrix){
-	double result, *temp = (double*)calloc(matrix->n,sizeof(double));
-	MultMatrixInteger(matrix,s,temp);
-	result = multVecIntDouble(s,temp, matrix->n,matrix->n);
-	free(temp);
+double calculateDeltaQ(int* s, Matrix* C){
+	double result, *Cs = (double*)calloc(C->n,sizeof(double));
+	checkAllocation(Cs, __FUNCTION__, __LINE__-1);
+
+	MultMatrixInteger(C,s,Cs);
+	result = multVecIntDouble(s,Cs, C->n,C->n);
+	free(Cs);
 	return (result*0.5);
 
 
@@ -93,6 +97,7 @@ double calculateEiganValue(Matrix *C, double *v, double norm){
 	int n=C->n;
 	double value,denominator,numerator;
 	double *Cv = (double*)calloc(n,sizeof(double));
+	checkAllocation(Cv, __FUNCTION__, __LINE__-1);
 
 	MultMatrix(C,v,Cv);
 	numerator   = multiplyVectors(v, Cv, n, n); /* num = V*C*v */
@@ -131,12 +136,15 @@ int Alogrithem2(Matrix* matrix, int* subDiv, int* g, int n, int* a, int* b){
 	matrix -> filter = g;
 
 	if( *a != 0 || *b != 0){
-		printf("probelm reseting a,b");
+		printf("probelm reseting a,b\n");
 		forceStop(__FUNCTION__, __LINE__);
 	}
 
 	vec = (double*)calloc(n, sizeof(double));
+	checkAllocation(vec, __FUNCTION__, __LINE__-1);
 	nextVec = (double*)calloc(n,sizeof(double));
+	checkAllocation(nextVec, __FUNCTION__, __LINE__-1);
+
 
 	powerIteration(matrix,vec,nextVec,n);
 	value = calculateEiganValue(matrix,vec,matrix->norm);
@@ -171,6 +179,9 @@ void Alogrithem3(Matrix* matrix, int n, division* O, division* P){
 		removeG(P, g, n); /* what to doo?? */;
 		divideable = Alogrithem2(matrix, subDiv,g,n,&a,&b );
 		A=cg ; B=cg ;
+		checkAllocation(A, __FUNCTION__, __LINE__-1);checkAllocation(B, __FUNCTION__, __LINE__-1);
+
+
 		if(divideable){
 			breaker++;
 			subDividedBySubdiviosion(A,B, subDiv,n, a, b);
