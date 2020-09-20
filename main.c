@@ -85,34 +85,38 @@ int main(int argc, char* argv[]) {
 	FILE *inMatrix, *outputDiv;
 	Matrix *matrix;
 	division *O = allocateDivision, *P = allocateDivision /* allocate Divisions*/;
-	clock_t current_time;
+	clock_t begin =clock();
+	double runningTimeSec;
 	int n;
 	checkAllocation(P, __FUNCTION__, __LINE__-1); checkAllocation(O, __FUNCTION__, __LINE__-1);
-
 
 	(checkArgc(argc));
 	srand(time(NULL));
 	inMatrix  = fopen(argv[1],"r");
+	checkAllocation(inMatrix, __FUNCTION__, __LINE__-1);
 	outputDiv = fopen(argv[2],"w");
+	checkAllocation(outputDiv, __FUNCTION__, __LINE__-1);
 
 	fread(&n, 1 ,sizeof(int), inMatrix);
 	matrix = allocateMatrix(n);
 
 	loadMatrix(inMatrix,matrix,n);
 
-	current_time = clock();
-	printf("\n>>\tloading Graph Complete [%.0f ms] \n", (double)current_time);
+	runningTimeSec =(double) (clock()-begin)/CLOCKS_PER_SEC;
+	printf("\n>>\tloading Graph Complete [%.2f s] \n", runningTimeSec);
 
 	setEmptyDivision(O);
 	setTrivialDivision(P,n);
 
 	Alogrithem3(matrix, n, O, P);
-	current_time = clock();
-	printf("\n>>\tAlgorithem 3 is Done [%.0f ms] \n", (double)current_time);
+
+	runningTimeSec =(double) (clock()-begin)/CLOCKS_PER_SEC;
+	printf("\n>>\tAlgorithem 3 is Done [%.2f s] \n", runningTimeSec);
 
 	writeDivision(outputDiv,O);
-	current_time = clock();
-	printf("\n>>\tWriting output is Done [%.0f ms] \n", (double)current_time);
+
+	runningTimeSec =(double) (clock()-begin)/CLOCKS_PER_SEC;
+	printf("\n>>\tWriting output is Done [%.2f s] \n", runningTimeSec);
 
 	/*free memory and finish program*/
 	freeMatrix(matrix);
@@ -123,8 +127,10 @@ int main(int argc, char* argv[]) {
 	printf("\n\n>>\tchecking output:\n");
 	checkOutPut(argv[2], n);
 */
-	current_time = clock();
-	printf("\n>> >>   finished running [%.0fms]   << <<\n\n",(double)current_time);
+	runningTimeSec =(double) (clock()-begin)/CLOCKS_PER_SEC;
+	printf("\n>> >>   finished running [%.2f s]   << <<\n\n", runningTimeSec);
+
+	checkOutPut(argv[2],n);
 	return EXIT_SUCCESS;
 }
 

@@ -24,6 +24,9 @@ typedef struct _Matrix {
 	int* K;				/* degrees vector of nodes:    k[j] = degree(vj) */
 	double* kmFactor;	/* normalized degrees:	kmFactor[j] = degree(vj)/M */
 
+	double* f;			/* f part of matrix = rows sums */
+
+
 	int* filter;		/* current subgroup of vertices as {0,1}^n */
 
 } Matrix;
@@ -44,13 +47,15 @@ void printMatrix(Matrix *matrix);
 
 void createNmatrix(Matrix *matrix);
 
-double getNij(Matrix* matrix, int i, int j);
+double Nrowsum(Matrix* matrix, int row);
 
+void calculateRowSums(Matrix* matrix);
 
 void AddRow(Matrix *matrix, const int *newRow, int k, int i);
 
-void combineVectors(int n, double* v1, double* v2, double *v3, double* result);
+void combineVectorsInteger(int n, double* v1, double* v2, double *v3, double* result);
 
+void combineVectors(int n, double* v1, double* v2, double *v3, double* v4 ,double* result);
 
 /*multiply matrix and double vector*/
 
@@ -61,16 +66,22 @@ void combineVectors(int n, double* v1, double* v2, double *v3, double* result);
 void multSparseMatrix(const Matrix *matrix, const double *vector, double *result);
 
 /*
- * multiply N matrix with douvle vector according to g
+ * multiply N matrix with double vector according to g
  * N matrix is represent by K and kmFactor
  * */
 void multNmatrix(const Matrix *matrix, const double *vector, double *result);
 
 /*
- * multiply D matrix with douvle vector according to g
+ * multiply D matrix with double vector according to g
  * Dv =norm1 x vec
  * */
 void multUnitMatrix(const Matrix *matrix, const double *vector, double *result);
+
+/*
+ * multiply f matrix with double vector according to g
+ * f = rowSums * I
+ * */
+void multFMatrix(const Matrix* matrix, const double *vector, double *result);
 
 /*
  * multiply matrix with double vector according to g
@@ -98,6 +109,12 @@ void multNmatrixInteger(const Matrix *matrix, const int *vector, double *result)
  * Dv =norm1 x vec
  * */
 void multUnitMatrixInteger(const Matrix *matrix, const int *vector, double *result);
+
+/*
+ * multiply f matrix with int vector according to g
+ * f = rowSums * I
+ * */
+void multFMatrix(const Matrix* matrix, const double *vector, double *result);
 
 /*
  * multiply matrix with int vector according to g

@@ -152,6 +152,7 @@ int Alogrithem2(Matrix* matrix, int* subDiv, int* g, int n, int* a, int* b){
 	if (value <=0){
 		return 0;
 	}
+
 	updateSubDivision(g, subDiv, vec, n, a, b);
 
 	dQ = calculateDeltaQ(subDiv, matrix);
@@ -169,7 +170,7 @@ void Alogrithem3(Matrix* matrix, int n, division* O, division* P){
 	groupCell *A, *B;
 	int *g = (int*)calloc(n, sizeof(int)), *subDiv = (int*)calloc(n,sizeof(int));
 
-	int a ,b, divideable , breaker=0;
+	int a ,b, divideable , iter=0;
 
 	/*printf("\nA3: Entering loop:\n");*/
 
@@ -177,18 +178,19 @@ void Alogrithem3(Matrix* matrix, int n, division* O, division* P){
 
 		a = 0 ; b = 0;
 		removeG(P, g, n); /* what to doo?? */;
-		divideable = Alogrithem2(matrix, subDiv,g,n,&a,&b );
+		/*printIntVector(g,n, "g");*/
 		A=cg ; B=cg ;
 		checkAllocation(A, __FUNCTION__, __LINE__-1);checkAllocation(B, __FUNCTION__, __LINE__-1);
-
+		divideable = Alogrithem2(matrix, subDiv,g,n,&a,&b );
+		/*algorithem 4 */
 
 		if(divideable){
-			breaker++;
+			iter++;
 			subDividedBySubdiviosion(A,B, subDiv,n, a, b);
 			reOrder(P,O,A,B);
 
 
-			if(breaker == 2*n){
+			if(iter == 2*n){
 				printf("Algorithem 3 got stuck in LOOP");
 				forceStop(__FUNCTION__, __LINE__);
 			}
@@ -201,6 +203,7 @@ void Alogrithem3(Matrix* matrix, int n, division* O, division* P){
 			B = NULL;
 		}
 	}
+	printf("\n\t>Algorithem 3 took %d iterations\n",iter);
 	free(subDiv);
 	free(g);
 	freeDivision(P);
@@ -208,6 +211,7 @@ void Alogrithem3(Matrix* matrix, int n, division* O, division* P){
 }
 
 /*Algorithem 4*/
+
 
 /* initial array values to -1 */
 void indicesStart(int* indices,int n){

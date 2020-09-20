@@ -1,6 +1,9 @@
 /*
  * Matrix.c
  *      Author: omlad & Senior Greenberg
+ *
+ *
+ *
  */
 
 #include <assert.h>
@@ -18,10 +21,11 @@ void makeCell (cell* cell, int column){
 	cell->nextCell = NULL;
 }
 
-/*generate matrix = A - N + D
+/*generate matrix = A - N + + f D
  * A   = sparse matrix
  * Nij = ki*kj/M
- * D   = unit matrix* NORM1
+ * f   = row sums
+ * D   = unit matrix* NORM1 - for shifted
  *   */
 
 /* Allocates a new linked-lists sparse matrix of size n */
@@ -29,10 +33,10 @@ Matrix* allocateMatrix(int n){
 	 Matrix* matrix = (Matrix*)(calloc(1,sizeof(Matrix)));
 
 	 matrix->n = n;
-	 matrix->A = (list*) (calloc(n,sizeof(cell*)));
-	 matrix->K = (int*) calloc (n, sizeof(int));
-	 matrix->kmFactor = (double*) calloc(n,sizeof(double));
-
+	 matrix->K = 		(int*)calloc(n, sizeof(int));
+	 matrix->A = 		(list*)(calloc(n,sizeof(cell*)));
+	 matrix->kmFactor = (double*)calloc(n,sizeof(double));
+	 matrix->f = 		(double*)calloc(n,sizeof(double));
 	 return matrix;
 }
 
@@ -57,6 +61,7 @@ void freeMatrix(Matrix *matrix){
 	 free(matrix->K);
 	 free(matrix->kmFactor);
 	 free(matrix->A);
+	 free(matrix->f);
 	 free(matrix);
 
 }
@@ -70,6 +75,45 @@ void createNmatrix(Matrix* matrix){
 	for(j=0 ; j < matrix->n ; j++){
 		(matrix->kmFactor[j]) = (double)(k[j])/(M);
 	}
+}
+
+/*
+ * calculate row sum of (-N)
+ */
+double Nrowsum(Matrix* matrix, int row){
+
+	int j, M=matrix->M , n=matrix->n , *g=matrix->filter, *k=matrix->K;
+	double sum =0;
+	for (j=0;j<n;j++){
+		if (g[j]){
+			sum -= (double)k[row]*k[j]/M;
+		}
+	}
+	return sum;
+}
+
+/*
+ * row sum = sum of rows of (A-N)
+ */
+void calculateF(Matrix* matrix){
+	int j, n=matrix->n;
+	double sum, Nrow;
+	list current;
+
+	for (j=0; j<n ; j++){
+		sum =0;
+		Nrow = Nrowsum(matrix, j );
+		current = matrix->A[j];
+		while (current != NULL){
+			if(matrix->filter[current->col]){
+				sum ++;
+			}
+			current = current->nextCell;
+		}
+		matrix->f[j] = sum + Nrow;
+	}
+
+
 }
 
 /* add row i to matrix A
@@ -107,19 +151,7 @@ void AddRow(Matrix *matrix, const int *newRow, int k, int i){
 }
 
 
-/* result = V1 - V2 + v3
- * v1 = Av , v2 = Nv , c3=Dv
- *  */
-void combineVectors(int n, double* v1, double* v2, double *v3, double* result){
-	int j;
-	for(j=0; j<n ; j++){
-		result[j] = v1[j]-v2[j]+v3[j];
-	}
-}
-
-
 /*  multiply matrix and double vector  */
-
 
 /*
  * multiply sparse matrix A and double vector according to g
@@ -128,10 +160,11 @@ void multSparseMatrix(const Matrix *matrix, const double *vector, double *result
 	 int j, n=matrix->n, col;
 	 double dotproduct;
 	 list current;
+
 	 for (j=0;j<n;++j){
 		 dotproduct = (double) 0;
 		 if(matrix->filter[j]){
-			 current = ((matrix->A))[j];
+			 current = matrix->A[j];
 			 while (current != NULL){
 				 col = current->col;
 				 if(matrix->filter[col]){
@@ -146,26 +179,26 @@ void multSparseMatrix(const Matrix *matrix, const double *vector, double *result
  }
 
 /*
- * multiply N matrix with douvle vector according to g
+ * multiply N matrix with double vector according to g
  * N matrix is represent by K and kmFactor
+ * K*kmFActor = N -> N*vector = kmFactor*K*vector = kmFactor*(K*vector)
  * */
 void multNmatrix(const Matrix* matrix, const double *vector, double *result){
-	double *v1, dotProduct, Nij;
-	int i, j, *v2, n=matrix->n;
+	double *v1, dotProduct=0;
+	int j, *v2, n=matrix->n;
 	v1 = matrix->kmFactor ; v2 = matrix->K;
 
-	for(i=0; i<n ; i++){
-		dotProduct=0;
-		if(matrix->filter[i]){
-			for(j=0; j<n ; j++){
-				if(matrix->filter[j]){
-				Nij =(double) v1[i]*v2[j];
-				dotProduct += Nij*vector[j];
-				}
-			}
+	for (j=0 ; j<n ; j++){ /* calculate * vector -> scalar  */
+		if (matrix->filter[j]){
+			dotProduct += v2[j]*vector[j];
 		}
-		result[i] = dotProduct;
 	}
+	for (j=0; j<n; j++){ /* calculate kmFactor * scalar)*/
+		if(matrix->filter[j]){
+			result[j] = v1[j] * dotProduct;
+		}
+	}
+
 
 }
 
@@ -181,25 +214,48 @@ void multUnitMatrix(const Matrix* matrix, const double *vector, double *result){
 	}
 }
 
+
+void multFMatrix(const Matrix* matrix, const double *vector, double *result){
+	int j;
+	for (j=0;j<matrix->n;j++){
+		if(matrix->filter[j]){
+			result[j] = matrix->f[j]*vector[j];
+		}
+	}
+}
+
+/* result = V1 - V2 - v3 +v4
+ * v1 = Av , v2 = Nv , v3=fv, v4 = D
+ *  */
+void combineVectors(int n, double* v1, double* v2, double *v3, double* v4 ,double* result){
+	int j;
+		for(j=0; j<n ; j++){
+			result[j] = v1[j]-v2[j]-v3[j] +v4[j];
+		}
+}
+
 /*
  * multiply matrix with double vector according to g
- *  matrix = A - N + D
- */
+ * matrix = A - N + fI + DI
+ * result = Av - Nv + fv + Dv
+ *
+ * */
 void MultMatrix(const Matrix *matrix, const double *vector, double *result){
-	double *v1, *v2, *v3;
+	double *Av, *Nv, *fv, *Dv;
 	int n = matrix->n;
-	v1 = (double*)calloc(n,sizeof(double));
-	v2 = (double*)calloc(n,sizeof(double));
-	v3 = (double*)calloc(n,sizeof(double));
+	Av = (double*)calloc(n,sizeof(double));
+	Nv = (double*)calloc(n,sizeof(double));
+	fv = (double*)calloc(n,sizeof(double));
+	Dv = (double*)calloc(n,sizeof(double));
 
-	/*printIntVector(matrix->filter,n,"g");*/
-	multSparseMatrix(matrix, vector, v1);
-	multNmatrix(matrix,vector,v2);
-	multUnitMatrix(matrix, vector, v3);
+	multSparseMatrix(matrix, vector, Av);
+	multNmatrix(matrix,vector,Nv);
+	multFMatrix(matrix,vector, fv);
+	multUnitMatrix(matrix, vector, Dv);
 
-	combineVectors(n, v1,v2,v3,result);
+	combineVectors(n, Av, Nv, fv, Dv, result);
 
-	free(v1);free(v2);free(v3);
+	free(Av);free(Nv);free(fv);free(Dv);
 
 }
 
@@ -234,25 +290,24 @@ void multSparseMatrixInteger(const Matrix *matrix, const int *vector, double *re
 /*
  * multiply N matrix with int vector according to g
  * N matrix is represent by K and kmFactor
+ * K*kmFActor = N -> N*vector = kmFactor*K*vector = kmFactor*(K*vector)
  * */
 void multNmatrixInteger(const Matrix* matrix, const int *vector, double *result){
-	double *v1, dotProduct, Nij;
-	int i, j, *v2, n=matrix->n;
+	double *v1, dotProduct=0;
+	int j, *v2, n=matrix->n;
 	v1 = matrix->kmFactor ; v2 = matrix->K;
 
-	for(i=0; i<n ; i++){
-			dotProduct=0;
-			if(matrix->filter[i]){
-				for(j=0; j<n ; j++){
-					if(matrix->filter[j]){
-					Nij =(double) v1[i]*v2[j];
-					dotProduct += Nij*vector[j];
-					}
-				}
-			}
-			result[i] = dotProduct;
-
+	for (j=0 ; j<n ; j++){ /* calculate * vector -> scalar  */
+		if (matrix->filter[j]){
+			dotProduct += v2[j]*vector[j];
+		}
 	}
+	for (j=0; j<n; j++){ /* calculate kmFactor * scalar)*/
+		if(matrix->filter[j]){
+			result[j] = v1[j] * dotProduct;
+		}
+	}
+
 }
 
 /*
@@ -268,23 +323,42 @@ void multUnitMatrixInteger(const Matrix* matrix, const int *vector, double *resu
 
 }
 
-/*
- * multiply matrix with int vector according to g
- *  matrix = A - N + D
- */
-void MultMatrixInteger(const Matrix *matrix, const int *vector, double *result){
-	double *v1, *v2, *v3;
-	int n = matrix->n;
-	v1 = (double*)calloc(n,sizeof(double));
-	v2 = (double*)calloc(n,sizeof(double));
-	v3 = (double*)calloc(n,sizeof(double));
 
-	multSparseMatrixInteger(matrix, vector, v1);
-	multNmatrixInteger(matrix,vector,v2);
-	multUnitMatrixInteger(matrix, vector, v3);
-
-	combineVectors(n, v1,v2,v3,result);
-	free(v1);free(v2);free(v3);
+void multFMatrixInteger(const Matrix* matrix, const int *vector, double *result){
+	int j;
+	for (j=0;j<matrix->n;j++){
+		if(matrix->filter[j]){
+			result[j] = matrix->f[j]*vector[j];
+		}
+	}
 }
 
+/*
+ * multiply matrix with int vector according to g
+ *  matrix = A - N + fI
+ *  rsult = Av - Nv + fv
+ */
+void MultMatrixInteger(const Matrix *matrix, const int *vector, double *result){
+	double *Av, *Nv, *fv;
+	int n = matrix->n;
+	Av = (double*)calloc(n,sizeof(double));
+	Nv = (double*)calloc(n,sizeof(double));
+	fv = (double*)calloc(n,sizeof(double));
+
+	multSparseMatrixInteger(matrix, vector, Av);
+	multNmatrixInteger(matrix,vector,Nv);
+	multFMatrixInteger(matrix, vector, fv);
+
+	combineVectorsInteger(n, Av,Nv,fv,result);
+	free(Av);free(Nv);free(fv);
+}
+
+/* result = Av - Nv + fv
+ *  */
+void combineVectorsInteger(int n, double* Av, double* Nv, double *fv, double* result){
+	int j;
+	for(j=0; j<n ; j++){
+		result[j] = Av[j] - Nv[j] - fv[j];
+	}
+}
 
